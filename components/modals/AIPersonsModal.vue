@@ -1,11 +1,11 @@
 <template>
   <Transition
-    enter-active-class "transition duration-500 ease-out"
-    enter-from-class "opacity-0 scale-95"
-    enter-to-class "opacity-100 scale-100"
-    leave-active-class "transition duration-300 ease-in"
-    leave-from-class "opacity-100 scale-100"
-    leave-to-class "opacity-0 scale-95"
+    enter-active-class="transition duration-500 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="transition duration-300 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
   >
     <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md" @click.self="closeModal">
       <div class="relative top-20 max-w-4xl mx-auto w-full bg-black/90 rounded-3xl backdrop-blur-lg border border-gold/30 shadow-gold-glow p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
@@ -74,17 +74,20 @@
               class="w-full px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-medium hover:scale-105 transition-transform"
               @click="closeModal"
             >
-             _close
+              إغلاق
             </button>
           </div>
         </div>
       </div>
-    </Transition>
-  </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useUiStore } from '~/stores/ui'
+
+const ui = useUiStore()
 
 const characters = ref([
   {
@@ -92,11 +95,11 @@ const characters = ref([
     name: 'الشيخ رمضان',
     title: 'الشيخ رمضان',
     titleSub: 'حكيم الطاولة',
-    role: 'يقدم المشورة والأمثال الشعبية الحكيمة durante اللعب، ولا يرمي الجوكر إلا في أضخم صيدة، صوته الهادئ يهدئ العواطف',
+    role: 'يقدم المشورة والأمثال الشعبية الحكيمة أثناء اللعب، ولا يرمي الجوكر إلا في أضخم صيدة، صوته الهادئ يهدئ العواطف',
     sayings: [
       '"والله إن الورقة دي كيلة .. كِل ولا تنكِل"',
-      '"اللهم إني استودعتكDeck، فاحفظه كما حفظتني في المجالس"',
-      '"لا ترمِ إلا وأنا صقر، وإلاintegerن عليك الطعن"'
+      '"اللهم إني استودعتك الرزمة، فاحفظها كما حفظتني في المجالس"',
+      '"لا ترمِ إلا وأنت صقر"'
     ]
   },
   {
@@ -107,35 +110,34 @@ const characters = ref([
     role: 'يهاجم بكمائن مباغتة، يضحك بصوت عالٍ ويستفز الخصوم بثقة عالية ("والله ماعدي وأنا صقر!")، يضاعف من وتيرة اللعب',
     sayings: [
       '"والله ما أصدق ما أرى، أنا صقر هذا المساء!"',
-      '"رقمك دهMine .. ياريس، retracted ترميهاش!"',
+      '"رقمك ده لي.. يا ريس، لا ترميهاش!"',
       '"أنا ما أخافش الورق، أنا أخاف القرش لكنك!"'
     ]
   },
   {
     id: 'aunt-hessa',
-    title: 'خالتي حصة',
+    name: 'خالتي حصة',
     title: 'خالتي حصة',
     titleSub: 'مريحة الجلسة',
     role: 'تعاتب الشريك إذا كشف جبيده بفكاهة ("وين رايح بورقتك يا ولدي؟)، تضيف جوًا حميميًا وتخفف التوتر',
     sayings: [
       '"وين رايح بورقتك يا ولدي؟ الحديقة مش عندها غيرك!"',
-      '"الجوكر مش gioc يهبل، احترسه كويس!"',
-      '"جلسه حلوة كحلّك، ما تنكِلش'"'
+      '"الجوكر مش لعبة تهبل، احترسه كويس!"',
+      '"جلسة حلوة كحلك، ما تنكلش"'
     ]
   }
 ])
 
-const selectedPerson = ref(null)
+const selectedPerson = ref<any>(null)
 
 function selectPerson(person: any) {
   selectedPerson.value = person
-  // In full implementation, this person's AI would interact during gameplay
-  console.log('Selected person:', person)
   closeModal()
 }
 
 function closeModal() {
   selectedPerson.value = null
+  ui.closeModal()
 }
 </script>
 

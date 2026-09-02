@@ -1,11 +1,11 @@
 <template>
   <Transition
-    enter-active-class "transition duration-500 ease-out"
-    enter-from-class "opacity-0 scale-95"
-    enter-to-class "opacity-100 scale-100"
-    leave-active-class "transition duration-300 ease-in"
-    leave-from-class "opacity-100 scale-100"
-    leave-to-class "opacity-0 scale-95"
+    enter-active-class="transition duration-500 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="transition duration-300 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
   >
     <div
       class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md"
@@ -92,18 +92,21 @@
           </div>
           <button
             class="mt-4 w-full px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-400 text-black font-medium hover:scale-105 transition-transform"
-            @closeModal
+            @click="closeModal"
           >
             ادخل إلى المجلس
           </button>
         </div>
       </div>
-    </Transition>
-  </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { useUiStore } from '~/stores/ui'
+
+const ui = useUiStore()
 
 const environments = ref([
   {
@@ -164,7 +167,7 @@ function selectEnvironment(env: any) {
 
 function closeModal() {
   selectedEnv.value = null
-  // Emit close event or navigate back
+  ui.closeModal()
 }
 </script>
 
@@ -179,7 +182,7 @@ function closeModal() {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
 }
 
-/• Badge styling */
+/* Badge styling */
 .theme-badge {
   background: rgba(255, 185, 51, 0.3);
   color: #ffb933;

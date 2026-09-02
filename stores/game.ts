@@ -148,7 +148,7 @@ export const useGameStore = defineStore('game', () => {
   function connect() {
     if (!import.meta.client) return
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const host = window.location.host || '127.0.0.1:3000'
+    const host = window.location.host || '127.0.0.1:3005'
     socket = new WebSocket(`${proto}://${host}`)
 
     socket.onopen = () => {

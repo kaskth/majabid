@@ -10,6 +10,10 @@
     <ModalsLeaderboardModal v-if="ui.activeModal === 'leaderboard'" />
     <ModalsStoreModal v-if="ui.activeModal === 'store'" />
     <ModalsRulesModal v-if="ui.activeModal === 'rules'" />
+    <ModalsAtmospheresModal v-if="ui.activeModal === 'atmospheres'" />
+    <ModalsCardEffectsModal v-if="ui.activeModal === 'cardEffects'" />
+    <ModalsAmbushModal v-if="ui.activeModal === 'ambush'" />
+    <ModalsAIPersonsModal v-if="ui.activeModal === 'aiPersons'" />
     <LobbySessionsSheet v-if="ui.activeModal === 'sessionsSheet'" />
 
     <!-- Main Active View -->

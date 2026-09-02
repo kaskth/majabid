@@ -12,7 +12,7 @@ const E = require('./engine.js');
 const B = require('./bots.js');
 const USERS = require('./users.js');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 const TURN_MS = +(process.env.TURN_MS || 20000);        // 20 ثانية للدور
 const STOP_MS = +(process.env.STOP_MS || 5000);         // نافذة «وقّف!» 5 ثوانٍ
 const FINAL_STOP_MS = +(process.env.FINAL_STOP_MS || 4000); // نافذة الطور الختامي
@@ -776,6 +776,6 @@ setInterval(() => {
   }
 }, 200);
 
-server.listen(PORT, () => {
-  console.log(`🃏 مجابيد جاهز على http://0.0.0.0:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🃏 مجابيد جاهز على http://localhost:${PORT}`);
 });

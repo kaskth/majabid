@@ -1,11 +1,11 @@
 <template>
   <Transition
-    enter-active-class "transition duration-300 ease-out transform"
-    enter-from-class "scale-90 opacity-0 -translate-y-4"
-    enter-to-class "scale-100 opacity-100 translate-y-0"
-    leave-active-class "transition duration-200 ease-in transform"
-    leave-from-class "scale-100 opacity-100"
-    leave-to-class "scale-95 opacity-0"
+    enter-active-class="transition duration-300 ease-out transform"
+    enter-from-class="scale-90 opacity-0 -translate-y-4"
+    enter-to-class="scale-100 opacity-100 translate-y-0"
+    leave-active-class="transition duration-200 ease-in transform"
+    leave-from-class="scale-100 opacity-100"
+    leave-to-class="scale-95 opacity-0"
   >
     <div
       v-if="game.phase === 'stop' && game.pending"

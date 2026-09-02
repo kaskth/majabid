@@ -1,11 +1,11 @@
 <template>
   <Transition
-    enter-active-class "transition duration-500 ease-out"
-    enter-from-class "opacity-0 scale-95"
-    enter-to-class "opacity-100 scale-100"
-    leave-active-class "transition duration-300 ease-in"
-    leave-from-class "opacity-100 scale-100"
-    leave-to-class "opacity-0 scale-95"
+    enter-active-class="transition duration-500 ease-out"
+    enter-from-class="opacity-0 scale-95"
+    enter-to-class="opacity-100 scale-100"
+    leave-active-class="transition duration-300 ease-in"
+    leave-from-class="opacity-100 scale-100"
+    leave-to-class="opacity-0 scale-95"
   >
     <div class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md" @click.self="closeModal">
       <div class="relative top-20 max-w-2xl mx-auto w-full bg-black/90 rounded-3xl backdrop-blur-lg border border-gold/30 shadow-gold-glow p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
@@ -137,18 +137,21 @@
               class="relative rounded-xl border border-amber-500/20 p-2 text-center"
               :style="{ background: `linear-gradient(${angle}deg, #1d2b4f, #0e2c1a)` }"
             >
-              <span class="text-[9px] text-amber-300 font-medium">${angle}°</span>
+              <span class="text-[9px] text-amber-300 font-medium">{{ angle }}°</span>
             </div>
           </div>
           <p class="text-[9px] mt-3 text-gray-400">كل درجة تنتج تأثير بريق مختلف - من الوهج الخفيف إلى الومضة الذهبية الكاملة</p>
         </div>
       </div>
-    </Transition>
-  </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { useUiStore } from '~/stores/ui'
+
+const ui = useUiStore()
 
 const goldSkins = ref([
   { name: 'ذهب كلاسيكي', preview: '/cards/gold-classic.jpg', gradient: 'linear-gradient(135deg, #fff6cf 0%, #ffd75e 50%, #ffd75e 100%)' },
@@ -187,6 +190,7 @@ function closeModal() {
   selectedSkin.value = null
   hologramRotation.value = 0
   hologramTilt.value = 0
+  ui.closeModal()
 }
 </script>
 

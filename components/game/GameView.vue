@@ -312,4 +312,125 @@
       <button
         v-if="!game.myOptions.mustEat"
         class="px-3.5 py-2 rounded-2xl bg-black/60 hover:bg-black/80 text-gray-300 font-bold text-xs border border-white/10 active:scale-95 transition-colors"
-        @click="game.playCard('pass'
+        @click="game.playCard('pass')"
+      >
+        ⏭️ تجاوز
+      </button>
+    </div>
+
+    <!-- Bottom Hand Fan Zone -->
+    <div class="w-full z-30 pb-2">
+      <GameHandFan />
+    </div>
+
+    <!-- Round End Modal -->
+    <ModalsRoundEndModal v-if="game.phase === 'end'" />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useGameStore } from '~/stores/game'
+import { useAudioStore } from '~/stores/audio'
+import { useUiStore } from '~/stores/ui'
+
+const game = useGameStore()
+const audio = useAudioStore()
+const ui = useUiStore()
+
+// Calculate relative seat positions so current player is always at the bottom
+const bottomSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? game.mySeat : 0
+})
+
+const leftSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 1) % 4 : 1
+})
+
+const topSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 2) % 4 : 2
+})
+
+const rightSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 3) % 4 : 3
+})
+
+const selectedCardEats = computed(() => {
+  if (!game.selectedCardId) return []
+  const opt = game.myOptions.cards[game.selectedCardId]
+  return opt?.eats || []
+})
+
+const canDiscardSelected = computed(() => {
+  if (!game.selectedCardId) return false
+  const opt = game.myOptions.cards[game.selectedCardId]
+  return !!opt?.discard
+})
+
+const tableBackgroundClass = computed(() => {
+  switch (ui.theme) {
+    case 2:
+      return 'bg-[#050d1a]'
+    case 3:
+      return 'bg-[#0d1d3a]'
+    case 4:
+      return 'bg-[#1f0509]'
+    case 1:
+    default:
+      return 'bg-[#07130c]'
+  }
+})
+
+const atmosphereStyle = computed(() => ({
+  pointerEvents: 'none' as const
+}))
+
+function getThemeBackground(t: number) {
+  switch (t) {
+    case 2:
+      return { background: 'radial-gradient(ellipse at center, #0a1f38 0%, #030812 100%)' }
+    case 3:
+      return { background: 'radial-gradient(ellipse at center, #132244 0%, #050a18 100%)' }
+    case 4:
+      return { background: 'radial-gradient(ellipse at center, #2e1015 0%, #0e0305 100%)' }
+    case 1:
+    default:
+      return { background: 'radial-gradient(ellipse at center, #0d281a 0%, #040c07 100%)' }
+  }
+}
+
+function resetAtmosphere() {}
+
+const lanterns1 = [1, 2, 3, 4]
+const lightOrbs1 = [
+  { pos: 'top-1/4 left-1/4', x: 25, y: 25 },
+  { pos: 'top-1/3 right-1/4', x: 75, y: 33 },
+  { pos: 'bottom-1/4 left-1/3', x: 33, y: 75 },
+]
+const shootingStars = [
+  { id: 1, x: 20, y: 15, duration: 2.5, delay: 1 },
+  { id: 2, x: 65, y: 25, duration: 3, delay: 3.5 },
+]
+const sandParticles = [
+  { id: 1, x: 50, y: 100, delay: 0.5 },
+  { id: 2, x: 150, y: 180, delay: 1.2 },
+]
+const neonLights3 = [
+  { col: '1', row: '1' },
+  { col: '4', row: '1' },
+  { col: '2', row: '3' },
+  { col: '3', row: '4' },
+]
+const matchConfetti = [
+  { x: 100, y: 50 },
+  { x: 250, y: 80 },
+  { x: 400, y: 40 },
+]
+const teaSteam = [
+  { id: 1 },
+  { id: 2 },
+]
+const fawanisGlow = [
+  { id: 1 },
+]
+</script>
