@@ -49,7 +49,7 @@ export const useAudioStore = defineStore('audio', () => {
       osc.start(t0)
       osc.stop(t0 + duration + 0.05)
     } catch {
-      // Audio context error fallback
+      // Fallback
     }
   }
 
@@ -77,7 +77,7 @@ export const useAudioStore = defineStore('audio', () => {
       gn.connect(ctx.destination)
       src.start(t0)
     } catch {
-      // Audio fallback
+      // Fallback
     }
   }
 
@@ -89,14 +89,40 @@ export const useAudioStore = defineStore('audio', () => {
       playNoise(0.08, 0.06, 2200)
       playTone(500, 0.07, 'triangle', 0.04)
     },
+    slide() {
+      playNoise(0.09, 0.07, 1800)
+      playTone(420, 0.06, 'sine', 0.03)
+    },
     discard() {
-      playNoise(0.13, 0.11, 1200)
-      playTone(300, 0.1, 'triangle', 0.07)
+      playNoise(0.12, 0.1, 1200)
+      playTone(320, 0.09, 'triangle', 0.06)
     },
     eat() {
       playTone(650, 0.09, 'sine', 0.08)
       playTone(870, 0.13, 'sine', 0.07, 0.07)
       playNoise(0.12, 0.06, 800, 0.02)
+    },
+    tableSlap() {
+      playTone(95, 0.15, 'sine', 0.18)
+      playNoise(0.14, 0.12, 500)
+      playTone(220, 0.1, 'triangle', 0.08, 0.03)
+    },
+    sweep() {
+      playNoise(0.18, 0.08, 1600)
+      playTone(580, 0.12, 'sine', 0.06, 0.04)
+      playTone(880, 0.15, 'sine', 0.06, 0.1)
+    },
+    heartbeat() {
+      playTone(75, 0.12, 'sine', 0.14)
+      playTone(65, 0.14, 'sine', 0.12, 0.15)
+    },
+    chip() {
+      playTone(1800, 0.05, 'triangle', 0.05)
+      playTone(2400, 0.07, 'sine', 0.04, 0.04)
+    },
+    emoji() {
+      playTone(850, 0.06, 'sine', 0.06)
+      playTone(1200, 0.09, 'triangle', 0.05, 0.05)
     },
     joker() {
       ;[523, 659, 784, 1047].forEach((f, i) => playTone(f, 0.16, 'square', 0.05, i * 0.09))

@@ -88,6 +88,23 @@
         </div>
       </div>
 
+      <!-- Bot Difficulty Selector -->
+      <div>
+        <label class="block text-xs font-bold text-gray-300 mb-1.5">🧠 مستوى ذكاء البوتات</label>
+        <div class="grid grid-cols-3 gap-1.5">
+          <button
+            v-for="d in botDifficulties"
+            :key="d.id"
+            class="py-2 px-1 rounded-xl text-xs font-bold border transition-all flex flex-col items-center gap-0.5"
+            :class="(game.lobbyConfig.difficulty || 'pro') === d.id ? 'bg-amber-500 text-black border-yellow-300 shadow-sm font-black' : 'bg-black/40 text-gray-300 border-white/10 hover:border-white/30'"
+            @click="game.updateLobbyConfig({ difficulty: d.id })"
+          >
+            <span class="text-base">{{ d.icon }}</span>
+            <span class="truncate">{{ d.label }}</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Target Score Selector -->
       <div>
         <label class="block text-xs font-bold text-gray-300 mb-1.5">🏁 هدف الجلسة</label>
@@ -140,6 +157,12 @@ const lobbyThemes = [
   { id: 2, name: 'الصمان', icon: '⛺' },
   { id: 3, name: 'دبي', icon: '🌃' },
   { id: 4, name: 'البلد', icon: '☕' },
+]
+
+const botDifficulties = [
+  { id: 'casual', label: 'مبتدئ', icon: '🐣' },
+  { id: 'pro', label: 'محترف', icon: '⚔️' },
+  { id: 'legend', label: 'الذيب', icon: '🐺' },
 ]
 
 function selectTheme(themeId: number) {

@@ -1,85 +1,117 @@
 <template>
-  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center p-3 sm:p-5 rounded-3xl bg-black/45 backdrop-blur-md border border-amber-500/20 shadow-2xl">
-    <!-- Field Center Plate -->
-    <div class="flex-1 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[170px] px-2">
-      <div class="text-xs font-bold text-emerald-300 mb-2 flex items-center gap-1.5 select-none">
-        <span>الميدان 🎯</span>
-        <span class="text-xs text-amber-200/70 font-mono">({{ totalFieldCards }} ورقة)</span>
-      </div>
+  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-1">
+    <!-- 3D Table Outer Leather Padded Rail -->
+    <div
+      class="relative w-full p-2.5 sm:p-4 rounded-[36px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-4 transition-all duration-500"
+      :class="tableRimClass"
+    >
+      <!-- Golden Inlay Stitched Bezel -->
+      <div
+        class="relative w-full rounded-[28px] sm:rounded-[36px] p-2 sm:p-4 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-2 overflow-hidden"
+        :class="tableFeltClass"
+      >
+        <!-- Ambient Table Watermark / Arabesque Motif -->
+        <div class="absolute inset-0 pointer-events-none opacity-5 flex items-center justify-center">
+          <svg class="w-64 h-64 text-amber-300" viewBox="0 0 100 100" fill="currentColor">
+            <polygon points="50,5 61,35 95,35 68,57 79,91 50,70 21,91 32,57 5,35 39,35" />
+          </svg>
+        </div>
 
-      <!-- Field Cards Grid / Row -->
-      <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-2.5 max-w-full">
-        <div
-          v-for="grp in groupedField"
-          :key="grp.rank"
-          class="group relative flex items-center justify-center p-1 rounded-2xl bg-black/40 border transition-all duration-200 cursor-pointer"
-          :class="[
-            canEatRank(grp.rank)
-              ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-105 hover:scale-110 ring-2 ring-emerald-400/80 animate-pulse'
-              : 'border-white/10 hover:border-amber-400/50 hover:scale-105'
-          ]"
-          :title="canEatRank(grp.rank) ? 'اضغط للأكل المباشر!' : `مجموعة ${grp.rank}`"
-          @click="onFieldCardClick(grp.rank)"
-        >
-          <!-- Stack Effect -->
-          <div class="relative w-11 sm:w-13 h-15 sm:h-18">
+        <!-- Field Center Arena -->
+        <div class="flex-1 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[175px] px-2 z-10">
+          <!-- Arena Title & Count -->
+          <div class="text-[11px] sm:text-xs font-black tracking-wide mb-2 flex items-center gap-2 text-amber-200/90 drop-shadow">
+            <span class="text-base">🎯</span>
+            <span>ميدان اللعب</span>
+            <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-black/60 border border-white/10 text-amber-300 font-mono">
+              {{ totalFieldCards }} ورقة
+            </span>
+          </div>
+
+          <!-- Field Cards Row / Grid -->
+          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-2.5 max-w-full">
             <div
-              v-for="k in Math.min(grp.count, 3)"
-              :key="k"
-              class="absolute inset-0"
-              :style="{ transform: `translateY(${-(k - 1) * 2.5}px) translateX(${(k - 1) * 1.5}px)` }"
+              v-for="grp in groupedField"
+              :key="grp.rank"
+              class="group relative flex items-center justify-center p-1 rounded-2xl bg-black/50 border transition-all duration-200 cursor-pointer"
+              :class="[
+                canEatRank(grp.rank)
+                  ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.7)] scale-105 hover:scale-115 ring-2 ring-emerald-400 animate-pulse'
+                  : 'border-white/15 hover:border-amber-400/60 hover:scale-105'
+              ]"
+              :title="canEatRank(grp.rank) ? 'اضغط للأكل المباشر!' : `مجموعة ${grp.rank}`"
+              @click="onFieldCardClick(grp.rank)"
             >
-              <GameCard :rank="grp.rank" :suit="grp.suit" />
+              <!-- 3D Card Stack Effect -->
+              <div class="relative w-11 sm:w-13 h-15 sm:h-18">
+                <div
+                  v-for="k in Math.min(grp.count, 3)"
+                  :key="k"
+                  class="absolute inset-0"
+                  :style="{ transform: `translateY(${-(k - 1) * 2.5}px) translateX(${(k - 1) * 1.5}px)` }"
+                >
+                  <GameCard :rank="grp.rank" :suit="grp.suit" />
+                </div>
+              </div>
+
+              <!-- Multiplier Badge -->
+              <span
+                v-if="grp.count > 1"
+                class="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black font-black text-[10px] shadow"
+              >
+                ×{{ grp.count }}
+              </span>
+
+              <!-- Direct Eat Callout -->
+              <span
+                v-if="canEatRank(grp.rank)"
+                class="absolute -top-2.5 px-2 py-0.5 rounded-full bg-emerald-500 text-black font-black text-[9px] shadow-md select-none tracking-wide animate-bounce"
+              >
+                كِل 🍽️
+              </span>
             </div>
           </div>
 
-          <!-- Multiplier Badge -->
-          <span
-            v-if="grp.count > 1"
-            class="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black font-black text-[10px] shadow"
+          <!-- Empty field placeholder -->
+          <div v-else class="text-xs text-amber-200/50 font-medium py-6 select-none flex flex-col items-center gap-1">
+            <span class="text-xl opacity-40">🂡</span>
+            <span>الميدان خالي — ارمِ ورقة أو ابدأ الصيد</span>
+          </div>
+        </div>
+
+        <!-- 3D Tactical Deck (الرزمة ذات السماكة الواقعية) -->
+        <div class="flex flex-col items-center justify-center pl-3 border-r border-amber-400/20 shrink-0 z-10">
+          <div
+            class="relative w-14 sm:w-18 h-20 sm:h-24 transition-transform hover:scale-105 cursor-pointer"
+            title="رزمة الأوراق المتبقية"
           >
-            ×{{ grp.count }}
-          </span>
+            <!-- Deck Atmospheric Glow -->
+            <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 rounded-2xl blur-md pointer-events-none" />
 
-          <!-- Eat Hint Pill -->
-          <span
-            v-if="canEatRank(grp.rank)"
-            class="absolute -top-2 px-1.5 py-0.2 rounded-full bg-emerald-500 text-black font-black text-[9px] shadow-sm select-none"
-          >
-            كِل 🍽️
-          </span>
+            <!-- Realistic 3D Stack Thickness -->
+            <div
+              v-for="layer in deckVisualLayers"
+              :key="layer"
+              class="absolute inset-0 opacity-80"
+              :style="{ transform: `translateY(${layer * 1.5}px) translateX(${layer * 1}px)` }"
+            >
+              <GameCard :back="true" />
+            </div>
+
+            <!-- Top Face Card -->
+            <div class="relative w-full h-full">
+              <GameCard :back="true" />
+            </div>
+
+            <!-- Real Deck Count Badge -->
+            <div class="absolute -bottom-2 -left-2 px-2.5 py-0.5 rounded-full bg-black/95 border border-amber-400 text-gold-light font-mono font-black text-xs shadow-xl flex items-center gap-1">
+              <span>🂠</span>
+              <span>{{ game.deckCount }}</span>
+            </div>
+          </div>
+          <span class="text-[10px] font-bold text-amber-200/90 mt-2.5 tracking-wider">الرزمة</span>
         </div>
       </div>
-
-      <!-- Empty field placeholder -->
-      <div v-else class="text-xs text-emerald-200/50 font-medium py-6 select-none">
-        الميدان خالي — ابدأ بالرمي أو الأكل
-      </div>
-    </div>
-
-    <!-- Deck (الرزمة) -->
-    <div class="flex flex-col items-center justify-center pl-3 border-r border-white/10 shrink-0 select-none">
-      <div class="relative w-14 sm:w-18 h-20 sm:h-24 transition-transform hover:scale-105">
-        <!-- Deck Glow -->
-        <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 rounded-2xl blur-md pointer-events-none" />
-        
-        <!-- Stack effect for deck -->
-        <div class="absolute inset-0 translate-y-1.5 translate-x-1.5 opacity-60">
-          <GameCard :back="true" />
-        </div>
-        <div class="absolute inset-0 translate-y-0.5 translate-x-0.5 opacity-85">
-          <GameCard :back="true" />
-        </div>
-        <div class="relative w-full h-full">
-          <GameCard :back="true" />
-        </div>
-
-        <!-- Deck Count Overlay -->
-        <div class="absolute -bottom-2 -left-2 px-2 py-0.5 rounded-full bg-black/90 border border-gold/50 text-gold-light font-mono font-black text-xs shadow-lg">
-          {{ game.deckCount }}
-        </div>
-      </div>
-      <span class="text-[10px] font-bold text-gray-300 mt-2">الرزمة</span>
     </div>
   </div>
 </template>
@@ -88,13 +120,53 @@
 import { computed } from 'vue'
 import { useGameStore, type CardData } from '~/stores/game'
 import { useAudioStore } from '~/stores/audio'
+import { useUiStore } from '~/stores/ui'
 
 const game = useGameStore()
 const audio = useAudioStore()
+const ui = useUiStore()
 
 const RANK_ORDER = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 
 const totalFieldCards = computed(() => game.field.length)
+
+// Visual layers for 3D deck thickness
+const deckVisualLayers = computed(() => {
+  const cnt = Math.min(3, Math.ceil(game.deckCount / 120))
+  const layers: number[] = []
+  for (let i = 1; i <= cnt; i++) layers.push(i)
+  return layers
+})
+
+// Table Rim Styles based on Theme
+const tableRimClass = computed(() => {
+  switch (ui.theme) {
+    case 2: // Samman Night
+      return 'border-[#1b2b45] bg-gradient-to-b from-[#16233b] via-[#0d1626] to-[#060b13]'
+    case 3: // Dubai Sky Lounge
+      return 'border-[#2d4b8a] bg-gradient-to-b from-[#1c305c] via-[#0f1c3a] to-[#080d1e]'
+    case 4: // Balad Heritage
+      return 'border-[#5c2a1e] bg-gradient-to-b from-[#401a12] via-[#260d08] to-[#120503]'
+    case 1: // Najd Royal
+    default:
+      return 'border-[#5a3e1b] bg-gradient-to-b from-[#38240d] via-[#201406] to-[#0d0701]'
+  }
+})
+
+// Table Felt Styles based on Theme
+const tableFeltClass = computed(() => {
+  switch (ui.theme) {
+    case 2: // Midnight Navy Velvet
+      return 'border-blue-400/30 bg-gradient-to-b from-[#0e2240] via-[#071325] to-[#040a15]'
+    case 3: // Modern Cyber Glass
+      return 'border-cyan-400/30 bg-gradient-to-b from-[#142852] via-[#0a1633] to-[#050c1f]'
+    case 4: // Heritage Cordovan Leather
+      return 'border-amber-600/30 bg-gradient-to-b from-[#3a150e] via-[#240a05] to-[#120402]'
+    case 1: // Royal Emerald Felt
+    default:
+      return 'border-amber-500/30 bg-gradient-to-b from-[#0d3b22] via-[#062414] to-[#031309]'
+  }
+})
 
 interface GroupedRank {
   rank: string
@@ -139,7 +211,6 @@ function onFieldCardClick(rank: string) {
 
   let cardToUse: CardData | undefined = game.myHand.find((c) => c.id === game.selectedCardId)
 
-  // If selected card doesn't match and isn't joker, find one in hand that matches
   if (!cardToUse || (cardToUse.r !== rank && !cardToUse.j)) {
     cardToUse = game.myHand.find((c) => c.r === rank) || game.myHand.find((c) => c.j)
     if (cardToUse) {
@@ -150,6 +221,7 @@ function onFieldCardClick(rank: string) {
 
   if (cardToUse) {
     audio.sfx.eat()
+    audio.sfx.slide()
     game.playEat(cardToUse.id!, rank)
   }
 }

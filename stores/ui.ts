@@ -10,6 +10,7 @@ export type ActiveModal =
   | 'cardEffects'
   | 'ambush'
   | 'aiPersons'
+  | 'liveStats'
   | null
 export type ActiveTab = 'home' | 'sessions' | 'leaderboard' | 'store' | 'rules'
 

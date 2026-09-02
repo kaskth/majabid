@@ -1,7 +1,7 @@
 'use strict';
 /* ============================================================
    مجابيد — ذكاء البوتات وشخصيات الديوانية التفاعلية
-   (الشيخ رمضان، صقر الدواسر، خالتي حصة، وزعماء المجالس)
+   (مستويات الصعوبة: مبتدئ، محترف، أسطوري + ردود فعل تفاعلية)
    ============================================================ */
 const E = require('./engine.js');
 
@@ -11,7 +11,7 @@ const BOT_PERSONALITIES = [
     name: 'الشيخ رمضان',
     title: 'حكيم الطاولة',
     avatar: 'a6',
-    traits: { riskTolerance: 0.25, jokerThreshold: 50 },
+    traits: { riskTolerance: 0.3, jokerThreshold: 50 },
     quotes: {
       eat: [
         'كِل ولا تنكِل يا ولدي.. البركة بالصيدة 🌾',
@@ -41,7 +41,7 @@ const BOT_PERSONALITIES = [
     name: 'صقر الدواسر',
     title: 'الشاب المندفع',
     avatar: 'a4',
-    traits: { riskTolerance: 0.85, jokerThreshold: 30 },
+    traits: { riskTolerance: 0.9, jokerThreshold: 25 },
     quotes: {
       eat: [
         'طارت طارت! ما تعدي وأنا صقر! 🔥',
@@ -71,7 +71,7 @@ const BOT_PERSONALITIES = [
     name: 'خالتي حصة',
     title: 'مريحة الجلسة',
     avatar: 'a3',
-    traits: { riskTolerance: 0.5, jokerThreshold: 40 },
+    traits: { riskTolerance: 0.55, jokerThreshold: 35 },
     quotes: {
       eat: [
         'يا عيني على الرواق.. هات الورق بالحنية ☕',
@@ -101,7 +101,7 @@ const BOT_PERSONALITIES = [
     name: 'أبو حميد',
     title: 'المخضرم',
     avatar: 'a1',
-    traits: { riskTolerance: 0.6, jokerThreshold: 45 },
+    traits: { riskTolerance: 0.65, jokerThreshold: 40 },
     quotes: {
       eat: ['خذ عندك هالحسبة! 🎯', 'العب على الثقيل يا بطل 🎴'],
       stop: ['وقّف يا راعيها! ما تفوتني! ⛔', 'هات الأكلة وانتبه لدورك! 🛑'],
@@ -115,7 +115,7 @@ const BOT_PERSONALITIES = [
     name: 'زعيمة الملعب',
     title: 'الفارسة',
     avatar: 'a5',
-    traits: { riskTolerance: 0.75, jokerThreshold: 35 },
+    traits: { riskTolerance: 0.8, jokerThreshold: 30 },
     quotes: {
       eat: ['شيل وانظف الميدان! 🌪️', 'ولا كلمة.. الميدان يتكلم! ⚔️'],
       stop: ['وقّف! مكانك سر! ⛔', 'الأكلة هذي محجوزة من زمان! 🛡️'],
@@ -144,6 +144,19 @@ function getBotQuote(personalityId, eventKind) {
   return list[Math.floor(Math.random() * list.length)];
 }
 
+const EVENT_EMOJIS = {
+  eat: ['🔥', '🍽️', '😎', '💪', '🎯'],
+  stop: ['⛔', '⚡', '🦅', '🛑', '💥'],
+  joker: ['🃏', '👑', '✨', '🌟', '💎'],
+  robbed: ['😤', '💔', '👀', '😅', '💢'],
+  win: ['🏆', '🥇', '🎉', '👏', '🥳'],
+};
+
+function getBotEmoji(eventKind) {
+  const list = EVENT_EMOJIS[eventKind] || EVENT_EMOJIS.eat;
+  return list[Math.floor(Math.random() * list.length)];
+}
+
 /* قيمة مرئية للكنسة (بدون معرفة الجوكرات المدفونة — تقييم متحفظ) */
 function visibleCaptureValue(t, seat, rank) {
   let v = 0;
@@ -155,11 +168,18 @@ function visibleCaptureValue(t, seat, rank) {
   return v;
 }
 
-/* ---------- قرار البوت أثناء دوره ---------- */
-function botAct(t, seat, personalityId) {
+/* ---------- قرار البوت أثناء دوره مع احتساب مستوى الصعوبة ---------- */
+function botAct(t, seat, personalityId, difficulty = 'pro') {
   const hand = t.hands[seat];
   const pers = BOT_PERSONALITIES.find((x) => x.id === personalityId) || BOT_PERSONALITIES[0];
-  const traits = pers.traits || { riskTolerance: 0.5, jokerThreshold: 40 };
+  let traits = pers.traits || { riskTolerance: 0.5, jokerThreshold: 40 };
+
+  // تعديل الطباع حسب الصعوبة
+  if (difficulty === 'casual') {
+    traits = { riskTolerance: 0.35, jokerThreshold: 60 };
+  } else if (difficulty === 'legend') {
+    traits = { riskTolerance: 0.95, jokerThreshold: 20 };
+  }
 
   const opps = t.mode === 'ffa'
     ? [0, 1, 2, 3].filter((x) => x !== seat)
@@ -174,15 +194,34 @@ function botAct(t, seat, personalityId) {
 
     const matchingRank = hand.find((c) => c.rank === p.rank);
     const jokerCard = hand.find((c) => c.joker);
+
+    if (difficulty === 'casual') {
+      // المبتدئ: يوقف نادراً وعفوياً
+      const card = matchingRank || (Math.random() < 0.2 ? jokerCard : null);
+      if (!card) return { act: 'wait' };
+      if (Math.random() < 0.45) return { act: 'stop', card: card.id, joker: card.joker };
+      return { act: 'wait' };
+    }
+
+    if (difficulty === 'legend') {
+      // الأسطوري: خطف قاطع لأي أكلة تسوى أو فيها جوكر
+      const card = matchingRank || (p.jokers > 0 || p.cards.length >= 2 ? jokerCard : null);
+      if (!card) return { act: 'wait' };
+      if (p.jokers > 0) return { act: 'stop', card: card.id, joker: card.joker };
+      const gain = p.cards.reduce((a, c) => a + E.cardValue(c), 0);
+      if (gain >= 12 || matchingRank) return { act: 'stop', card: card.id, joker: card.joker };
+      return { act: 'wait' };
+    }
+
+    // المحترف (Pro)
     const card = matchingRank || (p.jokers > 0 || traits.riskTolerance > 0.6 ? jokerCard : null);
     if (!card) return { act: 'wait' };
-
     if (p.jokers > 0) return { act: 'stop', card: card.id, joker: card.joker };
     const gain = p.cards.reduce((a, c) => a + E.cardValue(c), 0);
     if (gain >= 20 && Math.random() < traits.riskTolerance) {
       return { act: 'stop', card: card.id, joker: card.joker };
     }
-    if (gain >= 10 && Math.random() < (traits.riskTolerance * 0.4)) {
+    if (gain >= 10 && Math.random() < (traits.riskTolerance * 0.5)) {
       return { act: 'stop', card: card.id, joker: card.joker };
     }
     return { act: 'wait' };
@@ -202,34 +241,51 @@ function botAct(t, seat, personalityId) {
       const v = visibleCaptureValue(t, seat, r);
       const cnt = t.field.filter((x) => x.rank === r).length +
         E.eatSources(t, seat).filter((s) => t.piles[s].chain && t.piles[s].chain.rank === r).length;
-      const score = v + cnt * 2;
+      
+      // في الأسطوري: تقييم إضافي لسرقة جبيد الخصم
+      let oppStealBonus = 0;
+      if (difficulty === 'legend') {
+        for (const op of opps) {
+          if (t.piles[op].chain?.rank === r) oppStealBonus += 15;
+        }
+      }
+
+      const score = v + cnt * 3 + oppStealBonus;
       if (!best || score > best.score) {
         best = { act: 'eat', card: c.id, rank: r, score, joker: c.joker };
       }
     }
   }
 
+  // الجوكر: استخدامه بحسب مستوى الصعوبة
   if (best && best.joker && best.score < traits.jokerThreshold) best = null;
 
-  const hungryEat = best && (best.score >= 20 || mustEat);
+  const minEatScore = difficulty === 'legend' ? 12 : (difficulty === 'pro' ? 20 : 25);
+  const hungryEat = best && (best.score >= minEatScore || mustEat);
   if (hungryEat) {
     return { act: 'eat', card: best.card, rank: best.rank, joker: best.joker };
   }
 
-  // 3) الرمي
+  // 3) الرمي الذكي
   if (!mustEat) {
     const dangerRanks = new Set();
     for (const s of opps) {
       const ch = t.piles[s].chain;
       if (ch) dangerRanks.add(ch.rank);
     }
-    const partner = t.piles[E.partnerOf(seat)].chain;
+    const partnerChain = t.piles[E.partnerOf(seat)]?.chain;
     let cards = hand.filter((c) => !c.joker);
+
+    if (difficulty === 'casual') {
+      // مبتدئ: يرمي أول ورقة غير الجوكر دون حسابات معقدة
+      if (cards.length > 0) return { act: 'discard', card: cards[0].id };
+    }
+
     cards = cards
       .map((c) => {
         let score = E.cardValue(c) * 3;
-        if (dangerRanks.has(c.rank)) score += 6;
-        if (partner && partner.rank === c.rank) score += 8;
+        if (dangerRanks.has(c.rank)) score += (difficulty === 'legend' ? 20 : 8);
+        if (partnerChain && partnerChain.rank === c.rank) score += 10;
         return { c, score };
       })
       .sort((a, b) => a.score - b.score);
@@ -240,7 +296,7 @@ function botAct(t, seat, personalityId) {
         const safeAlt = cards.some(
           (o) => o.c.id !== c.id && !dangerRanks.has(o.c.rank) && !E.partnerProtection(t, seat, o.c)
         );
-        if (!safeAlt && Math.random() < 0.7) continue;
+        if (!safeAlt && Math.random() < 0.8) continue;
       }
       return { act: 'discard', card: c.id };
     }
@@ -260,4 +316,5 @@ module.exports = {
   botAct,
   botDelay,
   getBotQuote,
+  getBotEmoji,
 };

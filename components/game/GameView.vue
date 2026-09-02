@@ -70,7 +70,15 @@
       </div>
 
       <!-- Right side controls -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Live Stats Scorecard Button -->
+        <button
+          class="p-2 rounded-full bg-black/60 hover:bg-black/80 text-amber-300 border border-amber-400/40 transition-transform active:scale-95 text-base"
+          title="إحصائيات الجولة المباشرة"
+          @click="ui.openModal('liveStats')"
+        >
+          📊
+        </button>
         <GameChatPicker />
         <button
           class="p-2 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 transition-transform active:scale-95 text-base"
@@ -103,6 +111,15 @@
       >
         {{ log.text }}
       </div>
+    </div>
+
+    <!-- Dynamic Turn Spotlight -->
+    <div
+      v-if="game.phase === 'acting' && !game.isSpec"
+      class="absolute pointer-events-none transition-all duration-700 ease-out z-10"
+      :class="turnSpotlightClass"
+    >
+      <div class="w-72 h-72 rounded-full bg-gradient-to-r from-amber-400/10 via-yellow-300/15 to-transparent blur-3xl animate-pulse" />
     </div>
 
     <!-- Table Playing Board & Players -->
@@ -210,6 +227,19 @@ const topSeatIndex = computed(() => {
 
 const rightSeatIndex = computed(() => {
   return game.mySeat >= 0 ? (game.mySeat + 3) % 4 : 3
+})
+
+const turnSpotlightClass = computed(() => {
+  if (game.turn === bottomSeatIndex.value) {
+    return 'bottom-24 left-1/2 -translate-x-1/2'
+  }
+  if (game.turn === topSeatIndex.value) {
+    return 'top-14 left-1/2 -translate-x-1/2'
+  }
+  if (game.turn === leftSeatIndex.value) {
+    return 'top-1/2 left-8 -translate-y-1/2'
+  }
+  return 'top-1/2 right-8 -translate-y-1/2'
 })
 
 const selectedCardEats = computed(() => {

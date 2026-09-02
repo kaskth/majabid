@@ -14,6 +14,7 @@
     <ModalsCardEffectsModal v-if="ui.activeModal === 'cardEffects'" />
     <ModalsAmbushModal v-if="ui.activeModal === 'ambush'" />
     <ModalsAIPersonsModal v-if="ui.activeModal === 'aiPersons'" />
+    <ModalsLiveStatsModal v-if="ui.activeModal === 'liveStats'" />
     <LobbySessionsSheet v-if="ui.activeModal === 'sessionsSheet'" />
 
     <!-- Main Active View -->

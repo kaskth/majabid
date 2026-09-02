@@ -18,6 +18,7 @@ export interface SeatData {
   bot: boolean
   team: number
   bubble?: { text: string; at: number } | null
+  reaction?: { emoji: string; at: number } | null
   connected: boolean
   rank?: string
 }
@@ -39,6 +40,7 @@ export interface LobbyConfig {
   mode: 'teams' | 'ffa'
   target: number
   theme: number
+  difficulty?: 'casual' | 'pro' | 'legend'
 }
 
 export interface RoundResult {
@@ -106,6 +108,7 @@ export const useGameStore = defineStore('game', () => {
   const isFinal = ref<boolean>(false)
   const deckCount = ref<number>(424)
   const matchOver = ref<boolean>(false)
+  const difficulty = ref<'casual' | 'pro' | 'legend'>('pro')
 
   const seats = ref<(SeatData | null)[]>([null, null, null, null])
   const field = ref<CardData[]>([])
@@ -284,6 +287,7 @@ export const useGameStore = defineStore('game', () => {
         roundResult.value = s.result
 
         if (s.theme) ui.theme = s.theme
+        if (s.difficulty) difficulty.value = s.difficulty
         currentScreen.value = 'game'
 
         // Process incoming events
@@ -411,10 +415,17 @@ export const useGameStore = defineStore('game', () => {
   }
 
   function sendChat(text: string) {
+    audio.sfx.chat()
     send({ type: 'chat', text })
   }
 
+  function sendReaction(emoji: string) {
+    audio.sfx.emoji()
+    send({ type: 'reaction', emoji })
+  }
+
   function leaveRoom() {
+    audio.sfx.ui()
     send({ type: 'leave' })
     currentScreen.value = 'home'
     roomCode.value = ''
@@ -461,6 +472,7 @@ export const useGameStore = defineStore('game', () => {
     phase,
     mode,
     target,
+    difficulty,
     isFinal,
     deckCount,
     matchOver,
@@ -491,7 +503,9 @@ export const useGameStore = defineStore('game', () => {
     updateLobbyConfig,
     startGame,
     playCard,
+    playEat,
     sendChat,
+    sendReaction,
     leaveRoom,
     nextRound,
     rematch,

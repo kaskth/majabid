@@ -107,7 +107,7 @@ function createRoom(hostPid, name, avatar) {
   const room = {
     code, phase: 'lobby', seats: emptySeats(),
     specs: [],                 // المشاهدون (بث الجلسات)
-    config: { mode: 'teams', target: 0, theme: 1 },
+    config: { mode: 'teams', target: 0, theme: 1, difficulty: 'pro' },
     game: null, events: [], nextEvSeq: 1,
     stopDeadline: null, actionDeadline: null,
     windowId: 0, finalSteal: null, t0: Date.now(),
@@ -154,12 +154,14 @@ function viewFor(room, seat) {
     now: Date.now(), // معايرة ساعة العميل
     room: room.code, phase: room.phase, seat: isSpec ? -1 : seat,
     isSpec, mode: g.mode, target: g.target, theme: room.config.theme,
+    difficulty: room.config.difficulty || 'pro',
     matchOver: room.matchOver, specs: room.specs.length,
     round: g.round, dealer: g.dealer,
     isFinal: g.deck.length === 0, deckCount: g.deck.length,
     seats: room.seats.map((s, i) => s ? {
       i, name: s.name, avatar: s.avatar, isBot: s.isBot, bot: s.control === 'bot', team: i % 2,
       bubble: s.lastBubble && (Date.now() - s.lastBubble.at < 5000) ? s.lastBubble : null,
+      reaction: s.lastReaction && (Date.now() - s.lastReaction.at < 3500) ? s.lastReaction : null,
       connected: s.connected,
       rank: (() => { const u = USERS.getByPid(s.pid); return u ? USERS.rankOf(u.pts || 0).cur.emblem : ''; })(),
     } : null),
@@ -287,17 +289,20 @@ function botTurnMove(room, s) {
   if (!g || g.phase !== 'acting' || g.turn !== s) return;
   const slot = room.seats[s];
   const persId = slot ? slot.personalityId : null;
-  const d = B.botAct(g, s, persId);
+  const diff = room.config.difficulty || 'pro';
+  const d = B.botAct(g, s, persId, diff);
   let r = d.act === 'eat' ? E.eat(g, s, d.card, d.rank)
     : d.act === 'discard' ? E.discard(g, s, d.card)
     : E.pass(g, s);
   if (!r.ok) r = E.pass(g, s);
 
-  // Trigger speech bubble for bot
+  // Trigger speech bubble and reactions for bot
   if (r.ok && slot) {
     if (d.act === 'eat') {
       const q = B.getBotQuote(persId, d.joker ? 'joker' : 'eat');
       if (q && Math.random() < 0.8) slot.lastBubble = { text: q, at: Date.now() };
+      const em = B.getBotEmoji(d.joker ? 'joker' : 'eat');
+      if (em) slot.lastReaction = { emoji: em, at: Date.now() };
     }
     // Check if any victims were robbed
     if (r.event && r.event.victims && r.event.victims.length) {
@@ -306,6 +311,7 @@ function botTurnMove(room, s) {
         if (vicSlot && vicSlot.control === 'bot') {
           const vq = B.getBotQuote(vicSlot.personalityId, 'robbed');
           if (vq && Math.random() < 0.75) vicSlot.lastBubble = { text: vq, at: Date.now() };
+          vicSlot.lastReaction = { emoji: B.getBotEmoji('robbed'), at: Date.now() };
         }
       }
     }
@@ -320,7 +326,8 @@ function botStopDecision(room, s, wid) {
   if (!E.canStop(g, s)) return;
   const slot = room.seats[s];
   const persId = slot ? slot.personalityId : null;
-  const d = B.botAct(g, s, persId);
+  const diff = room.config.difficulty || 'pro';
+  const d = B.botAct(g, s, persId, diff);
   if (d.act !== 'stop') return;
   const r = E.stop(g, s, d.card);
   if (!r.ok) return;
@@ -328,6 +335,7 @@ function botStopDecision(room, s, wid) {
   if (slot) {
     const q = B.getBotQuote(persId, d.joker ? 'joker' : 'stop');
     if (q) slot.lastBubble = { text: q, at: Date.now() };
+    slot.lastReaction = { emoji: B.getBotEmoji('stop'), at: Date.now() };
   }
 
   if (r.event) logEvent(room, r.event);
@@ -619,6 +627,7 @@ wss.on('connection', (ws) => {
       if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
       if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
       if ([1, 2, 3, 4].includes(+m.theme)) room.config.theme = +m.theme;
+      if (['casual', 'pro', 'legend'].includes(m.difficulty)) room.config.difficulty = m.difficulty;
       lobbyBroadcast(room);
       return;
     }
@@ -701,6 +710,17 @@ wss.on('connection', (ws) => {
       logEvent(room, { kind: 'chat', text: `${who}: ${text}` });
       const s = room.seats[client.seat];
       if (s) s.lastBubble = { text, at: Date.now() };
+      broadcast(room);
+      return;
+    }
+
+    if (m.type === 'reaction') {
+      const room = ROOMS.get(client.roomCode);
+      if (!room || !room.game || client.seat < 0) return;
+      const emoji = String(m.emoji || '').slice(0, 4);
+      if (!emoji) return;
+      const s = room.seats[client.seat];
+      if (s) s.lastReaction = { emoji, at: Date.now() };
       broadcast(room);
       return;
     }
