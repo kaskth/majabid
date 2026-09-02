@@ -16,68 +16,59 @@
     >
       <div
         v-if="game.phase === 'stop' && game.pending"
-        class="fixed top-24 sm:top-28 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 max-w-[94vw] w-auto select-none"
+        class="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1 max-w-[94vw] w-auto select-none"
       >
         <!-- Cinematic Ambush Card -->
         <div
-          class="relative px-6 py-5 rounded-3xl bg-black/95 backdrop-blur-2xl border border-rose-500/60 shadow-[0_0_40px_rgba(225,29,72,0.45)] text-center min-w-[280px] sm:min-w-[340px]"
+          class="relative px-3.5 py-2 sm:px-6 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-black/95 backdrop-blur-2xl border border-rose-500/60 shadow-[0_0_30px_rgba(225,29,72,0.45)] text-center min-w-[260px] sm:min-w-[320px]"
         >
-          <!-- Floating Ambush Icon -->
-          <div class="absolute -top-4 -left-3 flex items-center justify-center text-3xl animate-bounce">
-            🍽️
+          <!-- Header -->
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <h3 class="text-amber-300 font-black text-xs sm:text-base tracking-wide flex items-center gap-1">
+              <span>⛔</span>
+              <span>«وقّف!» (الكمين)</span>
+            </h3>
+
+            <!-- Circular Countdown Timer Badge -->
+            <div class="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
+              <svg class="w-full h-full -rotate-90" viewBox="0 0 60 60">
+                <circle cx="30" cy="30" r="26" class="stroke-white/10 fill-none" stroke-width="5" />
+                <circle
+                  cx="30"
+                  cy="30"
+                  r="26"
+                  class="stroke-rose-500 fill-none transition-all duration-100"
+                  stroke-width="6"
+                  stroke-linecap="round"
+                  stroke-dasharray="163"
+                  :stroke-dashoffset="163 * (1 - timerFrac)"
+                />
+              </svg>
+              <span class="absolute font-mono font-black text-xs sm:text-sm text-amber-300">
+                {{ remainingSeconds }}
+              </span>
+            </div>
           </div>
 
-          <!-- Header -->
-          <h3 class="text-amber-300 font-black text-base sm:text-lg mb-1 tracking-wide flex items-center justify-center gap-2">
-            <span>⛔</span>
-            <span>نافذة «وقّف!» (الكمين)</span>
-          </h3>
-
           <!-- Owner & Capture info -->
-          <div class="text-xs text-white/90 mb-3">
+          <div class="text-[11px] sm:text-xs text-white/90 mb-2 flex items-center justify-center gap-1.5">
             <span class="font-bold text-amber-300">{{ ownerName }}</span>
-            <span> يأكل </span>
-            <span class="font-black text-amber-400 bg-amber-500/20 px-2.5 py-0.5 rounded-full border border-amber-400/50">
+            <span>يأكل</span>
+            <span class="font-black text-amber-400 bg-amber-500/20 px-2 py-0.2 rounded-full border border-amber-400/50">
               {{ game.pending.rank }} ({{ game.pending.count }} ورقة)
             </span>
           </div>
 
-          <!-- Circular Countdown Timer with Heartbeat Sync -->
-          <div class="relative w-16 h-16 mx-auto my-2 flex items-center justify-center">
-            <svg class="w-full h-full -rotate-90" viewBox="0 0 60 60">
-              <circle cx="30" cy="30" r="26" class="stroke-white/10 fill-none" stroke-width="4" />
-              <circle
-                cx="30"
-                cy="30"
-                r="26"
-                class="stroke-rose-500 fill-none transition-all duration-100"
-                stroke-width="5"
-                stroke-linecap="round"
-                stroke-dasharray="163"
-                :stroke-dashoffset="163 * (1 - timerFrac)"
-              />
-            </svg>
-            <span class="absolute font-mono font-black text-2xl text-amber-300">
-              {{ remainingSeconds }}
-            </span>
-          </div>
-
-          <!-- Action Prompt -->
-          <p class="text-xs font-bold mt-1" :class="canAct ? 'text-amber-200' : 'text-gray-400'">
-            {{ canAct ? '🎯 لديك الورقة — اخطف الأكلة فوراً (Enter)!' : (isPendingOwner ? 'أكلتك في الهواء.. ترقّب ثواني الكمين' : 'من يملك نفس الرقم أو الجوكر يمكنه الخطف') }}
-          </p>
-
           <!-- Decision Buttons -->
-          <div class="mt-4 flex items-center gap-3">
+          <div class="mt-1 flex items-center justify-center gap-2">
             <!-- Stop / Ambush CTA Button -->
             <button
               v-if="canAct && !hasFolded"
-              class="flex-1 px-5 py-2.5 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 text-white font-black text-sm sm:text-base shadow-[0_0_25px_rgba(225,29,72,0.7)] border border-amber-300 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-2 animate-pulse"
+              class="flex-1 px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 text-white font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(225,29,72,0.7)] border border-amber-300 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-1.5 animate-pulse"
               @click="executeStop"
             >
-              <span class="text-xl">⛔</span>
-              <span>صرخة «وقّف!»</span>
-              <span v-if="matchingCardText" class="text-xs bg-black/40 px-2 py-0.5 rounded-full font-bold">
+              <span>⛔ صرخة «وقّف!»</span>
+              <span v-if="matchingCardText" class="text-[10px] bg-black/50 px-1.5 py-0.2 rounded-full">
                 {{ matchingCardText }}
               </span>
             </button>
@@ -85,8 +76,8 @@
             <!-- Fold / Keep Card Button -->
             <button
               v-if="canAct && !hasFolded"
-              class="px-4 py-2.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/15 transition-colors"
-              title="احتفظ بالورقة للجولات القادمة"
+              class="px-3 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-[10px] sm:text-xs border border-white/15 transition-colors"
+              title="تجاوز واحتفظ بالورقة"
               @click="hasFolded = true"
             >
               تجاوز
@@ -95,9 +86,9 @@
             <!-- Waiting status -->
             <div
               v-if="!canAct || hasFolded"
-              class="w-full py-2 text-center text-xs text-gray-400 font-medium"
+              class="w-full py-0.5 text-center text-[11px] text-gray-300 font-medium"
             >
-              {{ hasFolded ? 'تم حفظ الورقة — بانتظار اكتمال الثواني ⏳' : 'بانتظار انتهاء النافذة ⏳' }}
+              {{ hasFolded ? 'تم حفظ الورقة — بانتظار العداد ⏳' : (isPendingOwner ? 'أكلتك معلقة — ترقّب ثواني الكمين ⏳' : 'بانتظار انتهاء النافذة ⏳') }}
             </div>
           </div>
         </div>

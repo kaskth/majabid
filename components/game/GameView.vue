@@ -4,111 +4,31 @@
     :class="tableBackgroundClass"
   >
     <!-- ============================================================ -->
-    <!-- 4 RICH, DISTINCT & UNMISTAKABLE ATMOSPHERE BACKGROUNDS       -->
+    <!-- PHOTOREALISTIC AI THEME BACKGROUND LAYER                    -->
     <!-- ============================================================ -->
     <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
-      <!-- Ambient Gradient Base -->
-      <div class="absolute inset-0" :style="getThemeBackground(ui.theme)" />
+      <!-- AI Atmosphere Photo with Smooth Crossfade -->
+      <Transition
+        enter-active-class="transition-opacity duration-700 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-500 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <img
+          :key="ui.theme"
+          :src="currentThemeImage"
+          alt="Atmosphere Background"
+          class="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.42] contrast-[1.1] saturate-[1.15] transform-gpu scale-105"
+        />
+      </Transition>
 
-      <!-- Theme 1: Royal Najd Majlis (مجلس نجد الملكي) -->
-      <div v-if="ui.theme === 1" class="absolute inset-0">
-        <div class="absolute inset-0 opacity-15">
-          <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
-            <path d="M40 0 L80 40 L40 80 L0 40 Z" fill="none" stroke="#f59e0b" stroke-width="1" />
-            <circle cx="40" cy="40" r="16" fill="none" stroke="#10b981" stroke-width="1" />
-            <circle cx="40" cy="40" r="6" fill="#f59e0b" opacity="0.6" />
-          </svg>
-        </div>
-        <!-- Sadu Tribal Runners -->
-        <div class="absolute inset-y-0 left-0 w-8 sm:w-16 bg-gradient-to-r from-red-950/80 via-amber-900/60 to-transparent border-r-2 border-amber-500/30 flex flex-col justify-around items-center py-6 opacity-85">
-          <div v-for="i in 8" :key="i" class="w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-45 border border-amber-400/60 bg-red-800/40" />
-        </div>
-        <div class="absolute inset-y-0 right-0 w-8 sm:w-16 bg-gradient-to-l from-red-950/80 via-amber-900/60 to-transparent border-l-2 border-amber-500/30 flex flex-col justify-around items-center py-6 opacity-85">
-          <div v-for="i in 8" :key="i" class="w-3.5 h-3.5 sm:w-4 sm:h-4 rotate-45 border border-amber-400/60 bg-red-800/40" />
-        </div>
-        <!-- Hanging Lanterns -->
-        <div class="absolute top-0 left-8 sm:left-28 flex flex-col items-center animate-pulse" style="animation-duration: 4s;">
-          <div class="w-0.5 h-12 sm:h-24 bg-gradient-to-b from-amber-300 to-amber-600" />
-          <div class="relative w-7 sm:w-10 h-10 sm:h-14 bg-gradient-to-b from-amber-400 to-amber-700 rounded-b-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] flex items-center justify-center border border-amber-300">
-            <span class="text-xs">🏮</span>
-          </div>
-        </div>
-        <div class="absolute top-0 right-8 sm:right-28 flex flex-col items-center animate-pulse" style="animation-duration: 5s; animation-delay: 1.5s;">
-          <div class="w-0.5 h-10 sm:h-20 bg-gradient-to-b from-amber-300 to-amber-600" />
-          <div class="relative w-7 sm:w-10 h-10 sm:h-14 bg-gradient-to-b from-amber-400 to-amber-700 rounded-b-2xl shadow-[0_0_25px_rgba(245,158,11,0.6)] flex items-center justify-center border border-amber-300">
-            <span class="text-xs">🏮</span>
-          </div>
-        </div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-emerald-600/15 rounded-full blur-3xl" />
-      </div>
+      <!-- Atmospheric Ambient Color Gradient & Vignette for Readability -->
+      <div class="absolute inset-0 transition-colors duration-700" :class="themeVignetteClass" />
 
-      <!-- Theme 2: Desert Starlit Camp (مخيم الصمان) -->
-      <div v-if="ui.theme === 2" class="absolute inset-0">
-        <div class="absolute inset-0">
-          <div class="absolute top-8 left-1/4 w-1.5 h-1.5 bg-white rounded-full shadow-[0_0_6px_#fff] animate-ping" style="animation-duration: 3s;" />
-          <div class="absolute top-16 right-1/4 w-2 h-2 bg-amber-200 rounded-full shadow-[0_0_8px_#fde68a] animate-pulse" style="animation-duration: 2.5s;" />
-          <div class="absolute top-28 left-1/3 w-1.5 h-1.5 bg-cyan-200 rounded-full animate-ping" style="animation-duration: 4s;" />
-          <div class="absolute top-12 right-1/3 w-1.5 h-1.5 bg-white rounded-full opacity-80" />
-          <div class="absolute top-24 right-10 w-2 h-2 bg-yellow-100 rounded-full animate-pulse" style="animation-duration: 3.5s;" />
-          <div class="absolute top-36 left-10 w-1 h-1 bg-white rounded-full opacity-70" />
-        </div>
-        <!-- Golden Crescent Moon -->
-        <div class="absolute top-3 right-4 sm:right-16 flex items-center gap-1.5">
-          <div class="text-2xl sm:text-4xl filter drop-shadow-[0_0_12px_rgba(253,224,71,0.7)] animate-pulse">
-            🌙
-          </div>
-          <span class="text-[10px] text-amber-200/60 font-bold hidden sm:inline">سماء الصمان</span>
-        </div>
-        <!-- Desert Dunes -->
-        <div class="absolute bottom-0 inset-x-0 h-36 sm:h-56 pointer-events-none opacity-40">
-          <svg class="w-full h-full" viewBox="0 0 1000 300" preserveAspectRatio="none">
-            <path d="M0,200 Q250,120 500,210 T1000,160 L1000,300 L0,300 Z" fill="#1e1308" />
-            <path d="M0,240 Q350,180 700,250 T1000,220 L1000,300 L0,300 Z" fill="#0f0a04" opacity="0.7" />
-          </svg>
-        </div>
-        <!-- Campfire Glow -->
-        <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center">
-          <div class="w-[420px] h-[180px] bg-gradient-to-t from-orange-600/30 via-amber-500/20 to-transparent rounded-full blur-3xl animate-pulse" style="animation-duration: 2s;" />
-          <div class="text-xl animate-bounce">🔥</div>
-        </div>
-      </div>
-
-      <!-- Theme 3: Dubai Sky-Lounge VIP (سكاي روف دبي) -->
-      <div v-if="ui.theme === 3" class="absolute inset-0">
-        <!-- Dubai Skyline Silhouette -->
-        <div class="absolute bottom-0 inset-x-0 h-40 sm:h-64 pointer-events-none opacity-30 flex items-end justify-around px-2">
-          <div class="w-10 sm:w-16 h-32 sm:h-40 bg-gradient-to-t from-blue-900 via-indigo-900 to-cyan-800 rounded-t-md border-t border-cyan-400/50">
-            <div class="grid grid-cols-2 gap-1 p-1 opacity-70">
-              <div v-for="w in 8" :key="w" class="w-1.5 h-1.5 bg-yellow-200/60 rounded-xs" />
-            </div>
-          </div>
-          <div class="w-7 sm:w-12 h-44 sm:h-56 bg-gradient-to-t from-blue-950 via-slate-900 to-blue-700 rounded-t-full border-t-2 border-cyan-300 relative shadow-[0_0_15px_rgba(6,182,212,0.4)]">
-            <div class="absolute -top-5 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-cyan-300 shadow-[0_0_8px_#22d3ee] animate-ping" />
-          </div>
-          <div class="w-12 sm:w-20 h-36 sm:h-48 bg-gradient-to-t from-purple-950 via-indigo-950 to-purple-800 rounded-t-lg border-t border-purple-400/50">
-            <div class="grid grid-cols-2 gap-1 p-1 opacity-70">
-              <div v-for="w in 10" :key="w" class="w-1.5 h-1.5 bg-cyan-200/60 rounded-xs" />
-            </div>
-          </div>
-        </div>
-        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.8)]" />
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-cyan-500/10 rounded-full blur-3xl" />
-      </div>
-
-      <!-- Theme 4: Heritage Balad Café (قهوة البلد) -->
-      <div v-if="ui.theme === 4" class="absolute inset-0">
-        <div class="absolute inset-0 opacity-20">
-          <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80">
-            <rect x="4" y="4" width="72" height="72" fill="none" stroke="#d97706" stroke-width="1.2" />
-            <line x1="40" y1="4" x2="40" y2="76" stroke="#d97706" stroke-width="1" />
-            <line x1="4" y1="40" x2="76" y2="40" stroke="#d97706" stroke-width="1" />
-          </svg>
-        </div>
-        <div class="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-[#38140d]/90 to-transparent border-b-2 border-amber-600/30 flex items-center justify-center">
-          <span class="text-[11px] sm:text-xs font-bold text-amber-200/80 tracking-wider">قهوة البلد الحجازية ☕</span>
-        </div>
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[350px] bg-amber-700/20 rounded-full blur-3xl" />
-      </div>
+      <!-- Center Depth Shadow for 3D Table Pop -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
     </div>
 
     <!-- ============================================================ -->
@@ -426,6 +346,30 @@ const tableBackgroundClass = computed(() => {
   }
 })
 
+const currentThemeImage = computed(() => {
+  switch (ui.theme) {
+    case 2: return '/images/themes/theme_2.jpg'
+    case 3: return '/images/themes/theme_3.jpg'
+    case 4: return '/images/themes/theme_4.jpg'
+    case 1:
+    default: return '/images/themes/theme_1.jpg'
+  }
+})
+
+const themeVignetteClass = computed(() => {
+  switch (ui.theme) {
+    case 2: // Samman Night Sky
+      return 'bg-gradient-to-b from-black/60 via-blue-950/30 to-black/85'
+    case 3: // Dubai VIP Neon
+      return 'bg-gradient-to-b from-black/60 via-indigo-950/30 to-black/85'
+    case 4: // Balad Heritage Amber
+      return 'bg-gradient-to-b from-black/60 via-amber-950/30 to-black/85'
+    case 1: // Najd Royal Emerald
+    default:
+      return 'bg-gradient-to-b from-black/60 via-emerald-950/30 to-black/85'
+  }
+})
+
 function getThemeBackground(t: number) {
   switch (t) {
     case 2: // Samman Desert Starlight
@@ -436,7 +380,7 @@ function getThemeBackground(t: number) {
       return { background: 'radial-gradient(ellipse at top, #36140d 0%, #180905 100%)' }
     case 1: // Najd Emerald Luxury
     default:
-      return { background: 'radial-gradient(ellipse at top, #0a2d1a 0%, #04150c 100%)' }
+      return 'radial-gradient(ellipse at top, #0a2d1a 0%, #04150c 100%)'
   }
 }
 </script>

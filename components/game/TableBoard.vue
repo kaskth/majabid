@@ -29,26 +29,26 @@
           </div>
 
           <!-- Field Cards Row / Grid -->
-          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-2.5 max-w-full">
+          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 max-w-full overflow-y-auto max-h-[140px] sm:max-h-[200px] no-scrollbar py-1">
             <div
               v-for="grp in groupedField"
               :key="grp.rank"
-              class="group relative flex items-center justify-center p-1 rounded-2xl bg-black/50 border transition-all duration-200 cursor-pointer"
+              class="group relative flex items-center justify-center p-0.5 sm:p-1 rounded-xl sm:rounded-2xl bg-black/50 border transition-all duration-200 cursor-pointer"
               :class="[
                 canEatRank(grp.rank)
-                  ? 'border-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.7)] scale-105 hover:scale-115 ring-2 ring-emerald-400 animate-pulse'
+                  ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.7)] scale-105 hover:scale-115 ring-2 ring-emerald-400 animate-pulse'
                   : 'border-white/15 hover:border-amber-400/60 hover:scale-105'
               ]"
               :title="canEatRank(grp.rank) ? 'اضغط للأكل المباشر!' : `مجموعة ${grp.rank}`"
               @click="onFieldCardClick(grp.rank)"
             >
               <!-- 3D Card Stack Effect -->
-              <div class="relative w-11 sm:w-13 h-15 sm:h-18">
+              <div class="relative w-8 sm:w-12 h-11 sm:h-16">
                 <div
                   v-for="k in Math.min(grp.count, 3)"
                   :key="k"
                   class="absolute inset-0"
-                  :style="{ transform: `translateY(${-(k - 1) * 2.5}px) translateX(${(k - 1) * 1.5}px)` }"
+                  :style="{ transform: `translateY(${-(k - 1) * 2}px) translateX(${(k - 1) * 1}px)` }"
                 >
                   <GameCard :rank="grp.rank" :suit="grp.suit" />
                 </div>
@@ -57,7 +57,7 @@
               <!-- Multiplier Badge -->
               <span
                 v-if="grp.count > 1"
-                class="absolute -bottom-1 -right-1 px-1.5 py-0.2 rounded-full bg-amber-500 text-black font-black text-[10px] shadow"
+                class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-full bg-amber-500 text-black font-black text-[9px] sm:text-[10px] shadow"
               >
                 ×{{ grp.count }}
               </span>

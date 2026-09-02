@@ -1,14 +1,5 @@
 <template>
   <div class="relative w-full max-w-4xl mx-auto h-32 sm:h-44 flex items-end justify-center select-none px-2 sm:px-4">
-    <!-- Hand Hint & Action Callout -->
-    <div
-      v-if="hintText"
-      class="absolute -top-7 sm:-top-8 px-3 sm:px-4 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-sm font-black shadow-xl backdrop-blur-md transition-all duration-300 z-30 pointer-events-none"
-      :class="isWarning ? 'bg-rose-600 text-white border-2 border-amber-300 animate-pulse' : 'bg-black/85 text-amber-300 border border-amber-400/40'"
-    >
-      {{ hintText }}
-    </div>
-
     <!-- Cards Hand Fan Container -->
     <div
       ref="containerRef"

@@ -41,5 +41,28 @@ onMounted(() => {
   audio.init()
   ui.init()
   game.connect()
+
+  if (typeof window !== 'undefined') {
+    const params = new URLSearchParams(window.location.search)
+    const themeParam = params.get('theme')
+    if (themeParam) {
+      ui.setTheme(parseInt(themeParam, 10))
+    }
+    const roomParam = params.get('room')
+    if (roomParam) {
+      setTimeout(() => game.joinRoom(roomParam), 600)
+    } else if (params.get('quick') === '1') {
+      const checkInterval = setInterval(() => {
+        if (game.currentScreen === 'home') {
+          game.quickPlay()
+        } else if (game.currentScreen === 'lobby') {
+          clearInterval(checkInterval)
+          game.startGame()
+        } else if (game.currentScreen === 'game') {
+          clearInterval(checkInterval)
+        }
+      }, 300)
+    }
+  }
 })
 </script>
