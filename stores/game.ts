@@ -23,7 +23,7 @@ export interface SeatData {
 }
 
 export interface PileData {
-  chain: { rank: string; count: number; jokers: number } | null
+  chain: { rank: string; count: number; jokers: number; suit?: string } | null
   buriedCount: number
 }
 
@@ -131,6 +131,8 @@ export const useGameStore = defineStore('game', () => {
     rank: string
     count: number
     stops: number[]
+    suit?: string
+    hasJoker?: boolean
   } | null>(null)
 
   const roundResult = ref<RoundResult | null>(null)

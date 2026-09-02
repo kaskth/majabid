@@ -1,18 +1,19 @@
 <template>
-  <div class="w-full max-w-lg mx-auto p-5 sm:p-7 rounded-3xl bg-[#0b1c13]/90 backdrop-blur-md border border-gold/30 shadow-2xl flex flex-col items-center text-center animate-in fade-in zoom-in duration-300">
-    <h2 class="text-2xl sm:text-3xl font-black text-gold-light mb-2">
+  <div class="w-full max-w-lg mx-auto p-5 sm:p-7 rounded-3xl bg-[#0b1c13]/95 backdrop-blur-md border border-amber-500/40 shadow-2xl flex flex-col items-center text-center animate-in fade-in zoom-in duration-300 select-none">
+    <h2 class="text-2xl sm:text-3xl font-black text-gold-light mb-1">
       طاولتك جاهزة 🎉
     </h2>
+    <p class="text-xs text-emerald-300/80 mb-3">اختر مقعدك واضبط إعدادات المجلس</p>
 
     <!-- Room Code Line -->
-    <div class="flex items-center gap-2 p-2 px-4 rounded-full bg-black/60 border border-white/15 my-2">
+    <div class="flex items-center gap-2 p-2 px-4 rounded-full bg-black/60 border border-white/15 my-1">
       <span class="text-xs text-gray-300">كود الطاولة:</span>
       <b class="text-lg font-mono tracking-widest text-amber-300">{{ game.roomCode }}</b>
       <button
-        class="ml-2 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-xs text-white font-bold transition-colors"
+        class="ml-2 px-3 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/30 text-xs text-amber-300 font-bold border border-amber-400/40 transition-colors"
         @click="copyLink"
       >
-        📋 نسخ
+        {{ copied ? 'تم النسخ ✅' : '📋 نسخ الرابط' }}
       </button>
     </div>
 
@@ -47,7 +48,7 @@
       </div>
     </div>
 
-    <!-- Lobby Config -->
+    <!-- Lobby Config Controls -->
     <div class="w-full space-y-3.5 my-2 text-right">
       <!-- Mode Toggle -->
       <div>
@@ -66,6 +67,23 @@
             @click="game.updateLobbyConfig({ mode: 'ffa' })"
           >
             🎯 فردي (4 لاعبين)
+          </button>
+        </div>
+      </div>
+
+      <!-- Atmosphere / Theme Selector -->
+      <div>
+        <label class="block text-xs font-bold text-gray-300 mb-1.5">🏛️ مظهر وبيئة المجلس</label>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button
+            v-for="th in lobbyThemes"
+            :key="th.id"
+            class="py-2 px-1 rounded-xl text-[11px] font-bold border transition-all flex flex-col items-center gap-1"
+            :class="game.lobbyConfig.theme === th.id ? 'bg-amber-500 text-black border-yellow-300 shadow-sm font-black' : 'bg-black/40 text-gray-300 border-white/10 hover:border-white/30'"
+            @click="selectTheme(th.id)"
+          >
+            <span class="text-base">{{ th.icon }}</span>
+            <span class="truncate max-w-full">{{ th.name }}</span>
           </button>
         </div>
       </div>
@@ -89,12 +107,12 @@
 
     <!-- Start Button -->
     <button
-      class="w-full py-3.5 mt-5 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black font-black text-lg shadow-gold-glow hover:scale-102 transition-transform active:scale-98"
+      class="w-full py-3.5 mt-4 rounded-2xl bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-black font-black text-lg shadow-gold-glow hover:scale-102 transition-transform active:scale-98"
       @click="game.startGame"
     >
       🎬 ابدأ اللعب
     </button>
-    <p class="text-[11px] text-gray-400 mt-2">البوتات تكمّل المقاعد الشاغرة تلقائياً 🤖</p>
+    <p class="text-[11px] text-gray-400 mt-2">البوتات تكمّل المقاعد الشاغرة تلقائياً بشخصيات ديوانية تفاعلية 🤖</p>
 
     <!-- Leave Lobby Button -->
     <button
@@ -107,19 +125,34 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useGameStore } from '~/stores/game'
 import { useUiStore } from '~/stores/ui'
 
 const game = useGameStore()
 const ui = useUiStore()
 
+const copied = ref(false)
 const isFFA = computed(() => game.lobbyConfig.mode === 'ffa')
+
+const lobbyThemes = [
+  { id: 1, name: 'نجد', icon: '🏛️' },
+  { id: 2, name: 'الصمان', icon: '⛺' },
+  { id: 3, name: 'دبي', icon: '🌃' },
+  { id: 4, name: 'البلد', icon: '☕' },
+]
+
+function selectTheme(themeId: number) {
+  ui.setTheme(themeId)
+  game.updateLobbyConfig({ theme: themeId })
+}
 
 function copyLink() {
   const url = `${window.location.origin}/?room=${game.roomCode}`
   if (navigator.clipboard) {
     navigator.clipboard.writeText(url)
+    copied.value = true
+    setTimeout(() => { copied.value = false }, 2500)
     ui.showToast('تم نسخ رابط الدعوة 📋')
   } else {
     ui.showToast(`الكود: ${game.roomCode}`)

@@ -1,23 +1,148 @@
 'use strict';
 /* ============================================================
-   مجابيد — ذكاء البوت (يلعب بالمعلومات المرئية فقط، لا غش)
+   مجابيد — ذكاء البوتات وشخصيات الديوانية التفاعلية
+   (الشيخ رمضان، صقر الدواسر، خالتي حصة، وزعماء المجالس)
    ============================================================ */
 const E = require('./engine.js');
 
-const BOT_NAMES = [
-  { name: 'أبو حميد', avatar: 'a1' },
-  { name: 'عمّو سالم', avatar: 'a2' },
-  { name: 'خالتي فاطمة', avatar: 'a3' },
-  { name: 'الغزالي', avatar: 'a4' },
-  { name: 'سيدي علي', avatar: 'a5' },
-  { name: 'الشيخ رمضان', avatar: 'a6' },
-  { name: 'أم كريم', avatar: 'a1' },
-  { name: 'مجدي الشبح', avatar: 'a2' },
-  { name: 'جابر الهضبة', avatar: 'a3' },
-  { name: 'زعيمة الملعب', avatar: 'a4' },
+const BOT_PERSONALITIES = [
+  {
+    id: 'sheikh-ramadan',
+    name: 'الشيخ رمضان',
+    title: 'حكيم الطاولة',
+    avatar: 'a6',
+    traits: { riskTolerance: 0.25, jokerThreshold: 50 },
+    quotes: {
+      eat: [
+        'كِل ولا تنكِل يا ولدي.. البركة بالصيدة 🌾',
+        'الحمد لله، كنسة طيبة تسر الخاطر ☕',
+        'العاقل يجمع بهدوء والقناعة كنز 👑',
+      ],
+      stop: [
+        'وقّف عندك! الصقر ما يفوّت عشاه ⛔',
+        'من تعجّل ندم.. والوقفة هذي في وقتها ⚖️',
+        'لا ترمِ إلا وأنت صقر يا شاطر 🦅',
+      ],
+      joker: [
+        'هذا الجوكر المبارك.. حان وقته! 🃏',
+        'الجوكر لا طلع هابته المجالس 🌟',
+      ],
+      robbed: [
+        'المال الحلال يرجع.. الأيام دُوَل يا رفاق 📜',
+        'صحصح يا ولدي، الجايات أكثر بإذن الله 🤲',
+      ],
+      win: [
+        'بيض الله وجوهكم جميعاً.. مجلس عامر بأهله 🏆',
+      ],
+    },
+  },
+  {
+    id: 'qais-dawsari',
+    name: 'صقر الدواسر',
+    title: 'الشاب المندفع',
+    avatar: 'a4',
+    traits: { riskTolerance: 0.85, jokerThreshold: 30 },
+    quotes: {
+      eat: [
+        'طارت طارت! ما تعدي وأنا صقر! 🔥',
+        'جاكم الإعصار ما تدرون؟ هات الورق! 🌪️',
+        'كنسة ملكية على أصولها! 😎',
+      ],
+      stop: [
+        'وقّففففف! والله ما تاخذها وأنا حي! ⛔⚡',
+        'صيدة الصقر ما تفلت أبد! 🦅💥',
+        'جنّب وراك يا غالي.. هذي ملكي! 🎯',
+      ],
+      joker: [
+        'جوكرررري نار وشرار! احرق الملعب! 🃏🔥',
+        'والله ما خليت لكم ورقة! كش ملك! 👑',
+      ],
+      robbed: [
+        'يا سارقها! والله لأردها لك مضاعفة! 😤',
+        'أتحداك تعيدها يا ذيب.. الجولة ما انتهت! 💥',
+      ],
+      win: [
+        'كفوووو يا الصقر! أنا بطل الميدان هذا المساء! 🏆🥇',
+      ],
+    },
+  },
+  {
+    id: 'aunt-hessa',
+    name: 'خالتي حصة',
+    title: 'مريحة الجلسة',
+    avatar: 'a3',
+    traits: { riskTolerance: 0.5, jokerThreshold: 40 },
+    quotes: {
+      eat: [
+        'يا عيني على الرواق.. هات الورق بالحنية ☕',
+        'جلسة حلوة كحلّك.. وأكلة تفتح النفس 🌸',
+        'يا رب تبارك وتزيد بكومتي 💖',
+      ],
+      stop: [
+        'وقّف شوي يا بعد راسي.. هذي لي! ✋',
+        'رويدك رويدك.. ترى العجلة ما فيها بركة 🛑',
+        'يا حبيبي استريح.. الأكلة وصلت راعيتها 🌹',
+      ],
+      joker: [
+        'الجوكر الذهبي زان المجلس بحضوره 🃏✨',
+        'سمّوا بالرحمن يا جماعة الخير 🤲',
+      ],
+      robbed: [
+        'وين رايح بورقتك يا ولدي؟ ما هقيتها منك! 😅',
+        'معليه يا ولدي، اللعب فلة وسعة صدر 🍵',
+      ],
+      win: [
+        'فزنا يا حبايب قلبي! تستاهلون القهوة والحلوى 🍰🏆',
+      ],
+    },
+  },
+  {
+    id: 'abu-humaid',
+    name: 'أبو حميد',
+    title: 'المخضرم',
+    avatar: 'a1',
+    traits: { riskTolerance: 0.6, jokerThreshold: 45 },
+    quotes: {
+      eat: ['خذ عندك هالحسبة! 🎯', 'العب على الثقيل يا بطل 🎴'],
+      stop: ['وقّف يا راعيها! ما تفوتني! ⛔', 'هات الأكلة وانتبه لدورك! 🛑'],
+      joker: ['حضر الجوكر وارتفعت الراية! 🃏'],
+      robbed: ['حلال عليك.. بس عينك على كومتك القادمة! 😉'],
+      win: ['لعب رجال وأداء محترفين! 🏆'],
+    },
+  },
+  {
+    id: 'zaeema',
+    name: 'زعيمة الملعب',
+    title: 'الفارسة',
+    avatar: 'a5',
+    traits: { riskTolerance: 0.75, jokerThreshold: 35 },
+    quotes: {
+      eat: ['شيل وانظف الميدان! 🌪️', 'ولا كلمة.. الميدان يتكلم! ⚔️'],
+      stop: ['وقّف! مكانك سر! ⛔', 'الأكلة هذي محجوزة من زمان! 🛡️'],
+      joker: ['سيف الجوكر يقطع كل الأوراق! 🃏⚔️'],
+      robbed: ['حسابك بيوصلك الحين! ⚡'],
+      win: ['تاج البطولة ما يلبسه إلا أهله! 👑'],
+    },
+  },
 ];
 
-function rand(a, b) { return a + Math.floor(Math.random() * (b - a + 1)); }
+const BOT_NAMES = BOT_PERSONALITIES.map((p) => ({
+  id: p.id,
+  name: p.name,
+  avatar: p.avatar,
+  personality: p,
+}));
+
+function rand(a, b) {
+  return a + Math.floor(Math.random() * (b - a + 1));
+}
+
+function getBotQuote(personalityId, eventKind) {
+  const p = BOT_PERSONALITIES.find((x) => x.id === personalityId) || BOT_PERSONALITIES[0];
+  const list = p.quotes[eventKind] || p.quotes.eat || [];
+  if (!list.length) return null;
+  return list[Math.floor(Math.random() * list.length)];
+}
 
 /* قيمة مرئية للكنسة (بدون معرفة الجوكرات المدفونة — تقييم متحفظ) */
 function visibleCaptureValue(t, seat, rank) {
@@ -31,9 +156,11 @@ function visibleCaptureValue(t, seat, rank) {
 }
 
 /* ---------- قرار البوت أثناء دوره ---------- */
-function botAct(t, seat) {
+function botAct(t, seat, personalityId) {
   const hand = t.hands[seat];
-  // في الفردي: الجميع خصوم — في الفرق: الخصمان فقط (الشريكة محمية)
+  const pers = BOT_PERSONALITIES.find((x) => x.id === personalityId) || BOT_PERSONALITIES[0];
+  const traits = pers.traits || { riskTolerance: 0.5, jokerThreshold: 40 };
+
   const opps = t.mode === 'ffa'
     ? [0, 1, 2, 3].filter((x) => x !== seat)
     : E.opponentsOf(seat);
@@ -41,17 +168,23 @@ function botAct(t, seat) {
   // 1) نافذة «وقّف!» — الكمين
   if (t.phase === 'stop' && t.pending) {
     const p = t.pending;
-    if (p.owner === seat) return { act: 'wait' };          // صاحبها
+    if (p.owner === seat) return { act: 'wait' };
     if (p.stops.includes(seat)) return { act: 'wait' };
-    // في الطور الختامي: اللاعب التالي فقط
     if (t.deck.length === 0 && E.nextSeat(p.owner) !== seat) return { act: 'wait' };
-    const card = hand.find((c) => c.rank === p.rank) || hand.find((c) => c.joker) || null;
+
+    const matchingRank = hand.find((c) => c.rank === p.rank);
+    const jokerCard = hand.find((c) => c.joker);
+    const card = matchingRank || (p.jokers > 0 || traits.riskTolerance > 0.6 ? jokerCard : null);
     if (!card) return { act: 'wait' };
-    // الجوكر = كنز — اخطفه دائماً تقريباً
-    if (p.jokers > 0) return { act: 'stop', card: card.id };
+
+    if (p.jokers > 0) return { act: 'stop', card: card.id, joker: card.joker };
     const gain = p.cards.reduce((a, c) => a + E.cardValue(c), 0);
-    if (gain >= 30 && Math.random() < 0.8) return { act: 'stop', card: card.id };
-    if (gain >= 10 && Math.random() < 0.25) return { act: 'stop', card: card.id };
+    if (gain >= 20 && Math.random() < traits.riskTolerance) {
+      return { act: 'stop', card: card.id, joker: card.joker };
+    }
+    if (gain >= 10 && Math.random() < (traits.riskTolerance * 0.4)) {
+      return { act: 'stop', card: card.id, joker: card.joker };
+    }
     return { act: 'wait' };
   }
 
@@ -62,7 +195,6 @@ function botAct(t, seat) {
   const opts = E.myOptions(t, seat);
   const mustEat = opts.mustEat;
 
-  // تقييم الأكلات المتاحة
   let best = null;
   for (const c of hand) {
     const candidates = c.joker ? ranks : (ranks.includes(c.rank) ? [c.rank] : []);
@@ -70,18 +202,21 @@ function botAct(t, seat) {
       const v = visibleCaptureValue(t, seat, r);
       const cnt = t.field.filter((x) => x.rank === r).length +
         E.eatSources(t, seat).filter((s) => t.piles[s].chain && t.piles[s].chain.rank === r).length;
-      const score = v + cnt * 2; // ميل خفيف لبناء الكومة
-      if (!best || score > best.score) best = { act: 'eat', card: c.id, rank: r, score, joker: c.joker };
+      const score = v + cnt * 2;
+      if (!best || score > best.score) {
+        best = { act: 'eat', card: c.id, rank: r, score, joker: c.joker };
+      }
     }
   }
-  // الجوكر: كنز — لا نرميه أبداً، نأكل به بس لو الأكل يستاهل
-  if (best && best.joker && best.score < 60) best = null;
 
-  const hungryEat = best && (best.score >= 25 || mustEat);
+  if (best && best.joker && best.score < traits.jokerThreshold) best = null;
 
-  if (hungryEat) return { act: 'eat', card: best.card, rank: best.rank };
+  const hungryEat = best && (best.score >= 20 || mustEat);
+  if (hungryEat) {
+    return { act: 'eat', card: best.card, rank: best.rank, joker: best.joker };
+  }
 
-  // 3) رمي: أقل الأوراق قيمة، وتجنب فتح جبيد الخصوم
+  // 3) الرمي
   if (!mustEat) {
     const dangerRanks = new Set();
     for (const s of opps) {
@@ -98,23 +233,31 @@ function botAct(t, seat) {
         return { c, score };
       })
       .sort((a, b) => a.score - b.score);
+
     for (const { c } of cards) {
       if (E.partnerProtection(t, seat, c)) continue;
       if (dangerRanks.has(c.rank) && !mustEat) {
-        // الخطر: لو رميناها يمكن للخصم ياكلها — نتأكد ما عندنا بديل آمن
-        const safeAlt = cards.some((o) => o.c.id !== c.id && !dangerRanks.has(o.c.rank) && !E.partnerProtection(t, seat, o.c));
+        const safeAlt = cards.some(
+          (o) => o.c.id !== c.id && !dangerRanks.has(o.c.rank) && !E.partnerProtection(t, seat, o.c)
+        );
         if (!safeAlt && Math.random() < 0.7) continue;
       }
       return { act: 'discard', card: c.id };
     }
   }
+
   // 4) تجاوز
   return { act: 'pass' };
 }
 
-/* زمن تفكير البوت (ميلي ثانية) — قابل للضبط عبر البيئة للاختبارات */
-const _min = +(process.env.BOT_MIN || 700);
-const _max = +(process.env.BOT_MAX || 1500);
+const _min = +(process.env.BOT_MIN || 600);
+const _max = +(process.env.BOT_MAX || 1300);
 const botDelay = () => rand(_min, _max);
 
-module.exports = { BOT_NAMES, botAct, botDelay };
+module.exports = {
+  BOT_PERSONALITIES,
+  BOT_NAMES,
+  botAct,
+  botDelay,
+  getBotQuote,
+};

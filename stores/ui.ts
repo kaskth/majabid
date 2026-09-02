@@ -1,6 +1,16 @@
 import { defineStore } from 'pinia'
 
-export type ActiveModal = 'leaderboard' | 'store' | 'rules' | 'roundEnd' | 'sessionsSheet' | null
+export type ActiveModal =
+  | 'leaderboard'
+  | 'store'
+  | 'rules'
+  | 'roundEnd'
+  | 'sessionsSheet'
+  | 'atmospheres'
+  | 'cardEffects'
+  | 'ambush'
+  | 'aiPersons'
+  | null
 export type ActiveTab = 'home' | 'sessions' | 'leaderboard' | 'store' | 'rules'
 
 export const useUiStore = defineStore('ui', () => {

@@ -11,7 +11,7 @@
     >
       <div
         v-if="hasBubble"
-        class="absolute -top-12 z-40 px-3 py-1.5 bg-white text-gray-900 rounded-xl shadow-xl border border-gray-200 text-xs font-bold max-w-[180px] text-center whitespace-normal break-words after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-white"
+        class="absolute -top-14 z-50 px-3 py-1.5 bg-black/95 text-amber-200 rounded-2xl shadow-2xl border border-amber-400/60 text-xs font-black max-w-[210px] text-center whitespace-normal break-words after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-amber-400"
       >
         {{ seat?.bubble?.text }}
       </div>
@@ -19,9 +19,9 @@
 
     <!-- Player Card / Avatar Container -->
     <div
-      class="relative flex items-center gap-2.5 p-2 rounded-2xl backdrop-blur-md transition-all duration-300 border shadow-md"
+      class="relative flex items-center gap-2 p-2 rounded-2xl backdrop-blur-md transition-all duration-300 border shadow-md select-none"
       :class="[
-        isCurrentTurn ? 'ring-2 ring-gold shadow-gold-glow bg-black/75 border-gold/60 scale-105' : 'bg-black/45 border-white/15',
+        isCurrentTurn ? 'ring-2 ring-gold shadow-gold-glow bg-black/80 border-gold/80 scale-105' : 'bg-black/45 border-white/15',
         isMe ? 'border-amber-400/40 bg-emerald-950/40' : '',
         !seat?.connected && !seat?.isBot ? 'opacity-50 grayscale' : '',
       ]"
@@ -34,7 +34,7 @@
             cx="50"
             cy="50"
             r="46"
-            class="stroke-gold fill-none transition-all duration-200"
+            class="stroke-amber-400 fill-none transition-all duration-200"
             stroke-width="4"
             stroke-linecap="round"
             :stroke-dasharray="289"
@@ -50,6 +50,14 @@
           :size="isCurrentTurn ? 'md' : 'sm'"
           :border="isCurrentTurn ? 'gold' : 'white'"
         />
+        <!-- Dealer Badge -->
+        <span
+          v-if="isDealer"
+          class="absolute -top-2 -right-1 text-xs select-none"
+          title="الموزّع"
+        >
+          🪙
+        </span>
         <!-- Bot Thinking indicator -->
         <div
           v-if="isBotThinking"
@@ -71,12 +79,19 @@
         <div class="flex items-center gap-1.5 text-[11px] text-gray-300">
           <span class="text-gold-light font-mono font-bold">🂠 {{ handCount }}</span>
           <span v-if="isMe" class="px-1 py-0.2 text-[9px] rounded bg-gold/20 text-gold font-bold">أنت</span>
+          <span
+            v-if="game.mode === 'teams'"
+            class="text-[9px] font-bold"
+            :class="seatIndex % 2 === 0 ? 'text-blue-300' : 'text-red-300'"
+          >
+            {{ seatIndex % 2 === 0 ? 'أزرق' : 'أحمر' }}
+          </span>
         </div>
       </div>
 
       <!-- Partner Ping Bell Button (For player) -->
       <button
-        v-if="isMe && game.isMyTurn"
+        v-if="isMe && game.isMyTurn && game.mode === 'teams'"
         class="ml-1 p-1 rounded-full bg-amber-500/20 hover:bg-amber-500/40 text-gold border border-gold/40 text-xs transition-transform active:scale-90"
         title="نادِ شريكك"
         @click="sendPing"
@@ -86,9 +101,9 @@
     </div>
 
     <!-- 3D Card Tower / Pile -->
-    <div class="mt-2 flex items-center justify-center gap-1.5 min-h-[50px]">
+    <div class="mt-2 flex items-center justify-center gap-2 min-h-[52px]">
       <!-- Buried Cards Stack -->
-      <div v-if="pile.buriedCount > 0" class="flex flex-col items-center">
+      <div v-if="pile.buriedCount > 0" class="flex flex-col items-center select-none">
         <div class="relative w-8 h-11">
           <div
             v-for="k in Math.min(pile.buriedCount, 3)"
@@ -99,30 +114,48 @@
             <GameCard :back="true" />
           </div>
         </div>
-        <span class="text-[10px] font-bold text-gray-300 mt-0.5">مدفون {{ pile.buriedCount }}</span>
+        <span class="text-[9px] font-bold text-gray-300 mt-0.5 font-mono">مدفون {{ pile.buriedCount }}</span>
       </div>
 
       <!-- Chain Top (الجبيد) -->
-      <div v-if="pile.chain" class="flex flex-col items-center">
-        <div class="relative w-9 h-12">
+      <div
+        v-if="pile.chain"
+        class="flex flex-col items-center transition-transform"
+        :class="[
+          canEatChain
+            ? 'cursor-pointer hover:scale-110 p-0.5 rounded-xl border border-emerald-400/80 shadow-[0_0_12px_rgba(52,211,153,0.5)] animate-pulse'
+            : ''
+        ]"
+        :title="canEatChain ? 'اسرق جبيد الخصم!' : `جبيد ${pile.chain.rank}`"
+        @click="onChainClick"
+      >
+        <div class="relative w-9 sm:w-10 h-13 sm:h-14">
           <div
             v-for="k in Math.min(pile.chain.count, 3)"
             :key="k"
             class="absolute inset-0 rounded overflow-hidden shadow-md"
             :style="{ transform: `translateY(${-k * 2}px) rotate(${k * 1.5}deg)` }"
           >
-            <GameCard :rank="pile.chain.rank" suit="♥" />
+            <GameCard :rank="pile.chain.rank" :suit="pile.chain.suit || '♠'" />
           </div>
         </div>
-        <span class="text-[10px] font-bold text-amber-300 mt-0.5">👑 جبيد {{ pile.chain.rank }} ×{{ pile.chain.count }}</span>
+        <span class="text-[9px] font-bold text-amber-300 mt-0.5 select-none">
+          👑 {{ pile.chain.rank }} ×{{ pile.chain.count }}
+        </span>
       </div>
 
       <!-- Pending Stop Capture Stack (الأكلة المعلقة في الهواء) -->
-      <div v-if="isPendingOwner" class="flex flex-col items-center animate-bounce">
-        <div class="relative w-9 h-12">
-          <GameCard :rank="game.pending!.rank" suit="♥" />
+      <div v-if="isPendingOwner" class="flex flex-col items-center animate-bounce select-none">
+        <div class="relative w-9 sm:w-10 h-13 sm:h-14">
+          <GameCard
+            :rank="game.pending!.rank"
+            :suit="game.pending!.suit || '♥'"
+            :joker="game.pending!.hasJoker"
+          />
         </div>
-        <span class="text-[10px] font-bold text-amber-400 bg-black/60 px-1 rounded">🍽️ {{ game.pending!.count }} ورقة</span>
+        <span class="text-[9px] font-bold text-amber-300 bg-black/80 border border-amber-400/40 px-1.5 py-0.2 rounded-full mt-0.5">
+          🍽️ {{ game.pending!.count }} ورقة
+        </span>
       </div>
     </div>
   </div>
@@ -130,19 +163,22 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { useGameStore, type SeatData, type PileData } from '~/stores/game'
+import { useGameStore, type SeatData, type PileData, type CardData } from '~/stores/game'
 import { useAudioStore } from '~/stores/audio'
 
-const props = defineProps<{
+interface Props {
   seatIndex: number
   seat: SeatData | null
   pile: PileData
-}>()
+}
+
+const props = defineProps<Props>()
 
 const game = useGameStore()
 const audio = useAudioStore()
 
 const isMe = computed(() => props.seatIndex === game.mySeat)
+const isDealer = computed(() => game.dealer === props.seatIndex)
 const isCurrentTurn = computed(() => game.turn === props.seatIndex && game.phase !== 'end')
 const handCount = computed(() => game.handCounts[props.seatIndex] || 0)
 const isPendingOwner = computed(() => game.pending?.owner === props.seatIndex && game.phase === 'stop')
@@ -154,6 +190,31 @@ const hasBubble = computed(() => {
   if (!props.seat?.bubble?.text) return false
   return Date.now() - (props.seat.bubble.at || 0) < 4500
 })
+
+const canEatChain = computed(() => {
+  if (isMe.value || !game.isMyTurn || !props.pile.chain) return false
+  const r = props.pile.chain.rank
+  return game.myHand.some((c) => c.r === r || c.j)
+})
+
+function onChainClick() {
+  if (!canEatChain.value || !props.pile.chain) return
+  const rank = props.pile.chain.rank
+  let cardToUse: CardData | undefined = game.myHand.find((c) => c.id === game.selectedCardId)
+
+  if (!cardToUse || (cardToUse.r !== rank && !cardToUse.j)) {
+    cardToUse = game.myHand.find((c) => c.r === rank) || game.myHand.find((c) => c.j)
+    if (cardToUse) {
+      game.selectedCardId = cardToUse.id!
+      audio.sfx.pick()
+    }
+  }
+
+  if (cardToUse) {
+    audio.sfx.eat()
+    game.playEat(cardToUse.id!, rank)
+  }
+}
 
 // Timer calculation
 const ringOffset = ref(0)

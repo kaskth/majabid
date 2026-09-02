@@ -83,14 +83,18 @@ const genCode = () => {
   return c;
 };
 
-function mkPlayer(pid, name, avatar, isBot = false) {
+function mkPlayer(pid, name, avatar, isBot = false, personalityId = null) {
   // control: 'human' | 'bot' — من يحرّك المقعد حقيقةً (بعد الانقطاع يكمّل البوت)
-  return { pid, name, avatar, isBot, control: isBot ? 'bot' : 'human', connected: false, ws: null, lastSeq: 0, lastBubble: null };
+  return {
+    pid, name, avatar, isBot, personalityId,
+    control: isBot ? 'bot' : 'human',
+    connected: false, ws: null, lastSeq: 0, lastBubble: null
+  };
 }
 
 function mkBotSeat() {
-  const b = B.BOT_NAMES[botIdx++ % B.BOT_NAMES.length];
-  return mkPlayer('bot-' + crypto.randomBytes(4).toString('hex'), b.name, b.avatar, true);
+  const p = B.BOT_PERSONALITIES[botIdx++ % B.BOT_PERSONALITIES.length];
+  return mkPlayer('bot-' + crypto.randomBytes(4).toString('hex'), p.name, p.avatar, true, p.id);
 }
 
 function findFreeSeat(room) {
@@ -155,12 +159,18 @@ function viewFor(room, seat) {
     isFinal: g.deck.length === 0, deckCount: g.deck.length,
     seats: room.seats.map((s, i) => s ? {
       i, name: s.name, avatar: s.avatar, isBot: s.isBot, bot: s.control === 'bot', team: i % 2,
-      bubble: s.lastBubble, connected: s.connected,
+      bubble: s.lastBubble && (Date.now() - s.lastBubble.at < 5000) ? s.lastBubble : null,
+      connected: s.connected,
       rank: (() => { const u = USERS.getByPid(s.pid); return u ? USERS.rankOf(u.pts || 0).cur.emblem : ''; })(),
     } : null),
     field: g.field.map((c) => ({ r: c.rank, s: c.suit })),
     piles: g.piles.map((p) => ({
-      chain: p.chain ? { rank: p.chain.rank, count: p.chain.cards.length, jokers: p.chain.jokers } : null,
+      chain: p.chain ? {
+        rank: p.chain.rank,
+        count: p.chain.cards.length,
+        jokers: p.chain.jokers,
+        suit: p.chain.cards[p.chain.cards.length - 1]?.suit || '♠',
+      } : null,
       buriedCount: p.buried.length + p.jokers,
     })),
     handCounts: g.hands.map((h) => h.length),
@@ -169,7 +179,14 @@ function viewFor(room, seat) {
     myHand: !isSpec ? g.hands[seat].map((c) => ({ id: c.id, r: c.rank, s: c.suit, j: c.joker })) : [],
     myOptions: isSpec ? { cards: {}, discard: false, pass: false, mustEat: false } : E.myOptions(g, seat),
     canStop: !isSpec ? E.canStop(g, seat) : false,
-    pending: g.pending ? { owner: g.pending.owner, rank: g.pending.rank, count: g.pending.cards.length, stops: g.pending.stops } : null,
+    pending: g.pending ? {
+      owner: g.pending.owner,
+      rank: g.pending.rank,
+      count: g.pending.cards.length,
+      stops: g.pending.stops,
+      suit: g.pending.cards[g.pending.cards.length - 1]?.suit || '♥',
+      hasJoker: g.pending.jokers > 0,
+    } : null,
     result: g.phase === 'end' ? g.roundResult : null,
   };
 }
@@ -268,11 +285,32 @@ function autoPassIfEmpty(room) {
 function botTurnMove(room, s) {
   const g = room.game;
   if (!g || g.phase !== 'acting' || g.turn !== s) return;
-  const d = B.botAct(g, s);
+  const slot = room.seats[s];
+  const persId = slot ? slot.personalityId : null;
+  const d = B.botAct(g, s, persId);
   let r = d.act === 'eat' ? E.eat(g, s, d.card, d.rank)
     : d.act === 'discard' ? E.discard(g, s, d.card)
     : E.pass(g, s);
   if (!r.ok) r = E.pass(g, s);
+
+  // Trigger speech bubble for bot
+  if (r.ok && slot) {
+    if (d.act === 'eat') {
+      const q = B.getBotQuote(persId, d.joker ? 'joker' : 'eat');
+      if (q && Math.random() < 0.8) slot.lastBubble = { text: q, at: Date.now() };
+    }
+    // Check if any victims were robbed
+    if (r.event && r.event.victims && r.event.victims.length) {
+      for (const vicSeat of r.event.victims) {
+        const vicSlot = room.seats[vicSeat];
+        if (vicSlot && vicSlot.control === 'bot') {
+          const vq = B.getBotQuote(vicSlot.personalityId, 'robbed');
+          if (vq && Math.random() < 0.75) vicSlot.lastBubble = { text: vq, at: Date.now() };
+        }
+      }
+    }
+  }
+
   handlePlayResult(room, s, r);
 }
 
@@ -280,10 +318,18 @@ function botStopDecision(room, s, wid) {
   const g = room.game;
   if (!g || g.phase !== 'stop' || !g.pending || wid !== room.windowId) return;
   if (!E.canStop(g, s)) return;
-  const d = B.botAct(g, s);
+  const slot = room.seats[s];
+  const persId = slot ? slot.personalityId : null;
+  const d = B.botAct(g, s, persId);
   if (d.act !== 'stop') return;
   const r = E.stop(g, s, d.card);
   if (!r.ok) return;
+
+  if (slot) {
+    const q = B.getBotQuote(persId, d.joker ? 'joker' : 'stop');
+    if (q) slot.lastBubble = { text: q, at: Date.now() };
+  }
+
   if (r.event) logEvent(room, r.event);
   if (g.deck.length === 0) {
     resolveStopWindow(room, room.windowId); // تحسم فوراً في الطور الختامي
@@ -572,7 +618,7 @@ wss.on('connection', (ws) => {
       if (!room || room.phase !== 'lobby' || client.seat < 0) return;
       if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
       if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
-      if ([1, 2, 3].includes(+m.theme)) room.config.theme = +m.theme;
+      if ([1, 2, 3, 4].includes(+m.theme)) room.config.theme = +m.theme;
       lobbyBroadcast(room);
       return;
     }

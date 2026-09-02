@@ -1,30 +1,38 @@
 <template>
-  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center p-3 sm:p-5 rounded-3xl bg-black/40 backdrop-blur-sm border border-white/10 shadow-2xl">
+  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center p-3 sm:p-5 rounded-3xl bg-black/45 backdrop-blur-md border border-amber-500/20 shadow-2xl">
     <!-- Field Center Plate -->
     <div class="flex-1 flex flex-col items-center justify-center min-h-[140px] sm:min-h-[170px] px-2">
-      <div class="text-[11px] font-bold text-emerald-300/80 mb-2 flex items-center gap-1">
+      <div class="text-xs font-bold text-emerald-300 mb-2 flex items-center gap-1.5 select-none">
         <span>الميدان 🎯</span>
-        <span class="text-xs text-white/50">({{ totalFieldCards }} ورقة)</span>
+        <span class="text-xs text-amber-200/70 font-mono">({{ totalFieldCards }} ورقة)</span>
       </div>
 
-      <!-- Field Cards Row / Grid -->
-      <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-2 max-w-full">
+      <!-- Field Cards Grid / Row -->
+      <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-2.5 max-w-full">
         <div
           v-for="grp in groupedField"
           :key="grp.rank"
-          class="relative flex items-center justify-center p-1 rounded-xl bg-black/30 border border-white/10 hover:border-gold/50 transition-transform hover:scale-105"
+          class="group relative flex items-center justify-center p-1 rounded-2xl bg-black/40 border transition-all duration-200 cursor-pointer"
+          :class="[
+            canEatRank(grp.rank)
+              ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-105 hover:scale-110 ring-2 ring-emerald-400/80 animate-pulse'
+              : 'border-white/10 hover:border-amber-400/50 hover:scale-105'
+          ]"
+          :title="canEatRank(grp.rank) ? 'اضغط للأكل المباشر!' : `مجموعة ${grp.rank}`"
+          @click="onFieldCardClick(grp.rank)"
         >
-          <!-- Stack of same rank -->
-          <div class="relative w-10 sm:w-12 h-14 sm:h-16">
+          <!-- Stack Effect -->
+          <div class="relative w-11 sm:w-13 h-15 sm:h-18">
             <div
               v-for="k in Math.min(grp.count, 3)"
               :key="k"
               class="absolute inset-0"
-              :style="{ transform: `translateY(${-(k - 1) * 2}px) translateX(${(k - 1) * 1.5}px)` }"
+              :style="{ transform: `translateY(${-(k - 1) * 2.5}px) translateX(${(k - 1) * 1.5}px)` }"
             >
-              <GameCard :rank="grp.rank" suit="♥" />
+              <GameCard :rank="grp.rank" :suit="grp.suit" />
             </div>
           </div>
+
           <!-- Multiplier Badge -->
           <span
             v-if="grp.count > 1"
@@ -32,17 +40,25 @@
           >
             ×{{ grp.count }}
           </span>
+
+          <!-- Eat Hint Pill -->
+          <span
+            v-if="canEatRank(grp.rank)"
+            class="absolute -top-2 px-1.5 py-0.2 rounded-full bg-emerald-500 text-black font-black text-[9px] shadow-sm select-none"
+          >
+            كِل 🍽️
+          </span>
         </div>
       </div>
 
       <!-- Empty field placeholder -->
-      <div v-else class="text-xs text-emerald-200/50 font-medium py-6">
+      <div v-else class="text-xs text-emerald-200/50 font-medium py-6 select-none">
         الميدان خالي — ابدأ بالرمي أو الأكل
       </div>
     </div>
 
     <!-- Deck (الرزمة) -->
-    <div class="flex flex-col items-center justify-center pl-3 border-r border-white/10 shrink-0">
+    <div class="flex flex-col items-center justify-center pl-3 border-r border-white/10 shrink-0 select-none">
       <div class="relative w-14 sm:w-18 h-20 sm:h-24 transition-transform hover:scale-105">
         <!-- Deck Glow -->
         <div class="absolute -inset-2 bg-gradient-to-r from-amber-500/20 to-yellow-600/20 rounded-2xl blur-md pointer-events-none" />
@@ -70,26 +86,71 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useGameStore } from '~/stores/game'
+import { useGameStore, type CardData } from '~/stores/game'
+import { useAudioStore } from '~/stores/audio'
 
 const game = useGameStore()
+const audio = useAudioStore()
 
 const RANK_ORDER = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 
 const totalFieldCards = computed(() => game.field.length)
 
-const groupedField = computed(() => {
-  const map = new Map<string, number>()
+interface GroupedRank {
+  rank: string
+  count: number
+  suit: string
+}
+
+const groupedField = computed<GroupedRank[]>(() => {
+  const map = new Map<string, { count: number; topSuit: string }>()
   for (const c of game.field) {
-    map.set(c.r, (map.get(c.r) || 0) + 1)
+    const existing = map.get(c.r)
+    if (existing) {
+      existing.count++
+      existing.topSuit = c.s
+    } else {
+      map.set(c.r, { count: 1, topSuit: c.s })
+    }
   }
-  const res: { rank: string; count: number }[] = []
+
+  const res: GroupedRank[] = []
   for (const r of RANK_ORDER) {
-    const count = map.get(r) || 0
-    if (count > 0) {
-      res.push({ rank: r, count })
+    const item = map.get(r)
+    if (item && item.count > 0) {
+      res.push({ rank: r, count: item.count, suit: item.topSuit })
     }
   }
   return res
 })
+
+function canEatRank(rank: string): boolean {
+  if (!game.isMyTurn) return false
+  const sel = game.myHand.find((c) => c.id === game.selectedCardId)
+  if (sel) {
+    if (sel.j) return true
+    if (sel.r === rank) return true
+  }
+  return game.myHand.some((c) => c.r === rank || c.j)
+}
+
+function onFieldCardClick(rank: string) {
+  if (!game.isMyTurn) return
+
+  let cardToUse: CardData | undefined = game.myHand.find((c) => c.id === game.selectedCardId)
+
+  // If selected card doesn't match and isn't joker, find one in hand that matches
+  if (!cardToUse || (cardToUse.r !== rank && !cardToUse.j)) {
+    cardToUse = game.myHand.find((c) => c.r === rank) || game.myHand.find((c) => c.j)
+    if (cardToUse) {
+      game.selectedCardId = cardToUse.id!
+      audio.sfx.pick()
+    }
+  }
+
+  if (cardToUse) {
+    audio.sfx.eat()
+    game.playEat(cardToUse.id!, rank)
+  }
+}
 </script>
