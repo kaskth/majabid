@@ -1,5 +1,5 @@
 <template>
-  <div class="relative min-h-screen bg-[#07130c] text-[#f2f7f3] font-arabic overflow-hidden select-none bg-mesh">
+  <div class="relative min-h-[100dvh] bg-[#07130c] text-[#f2f7f3] font-arabic select-none bg-mesh overflow-x-hidden">
     <!-- Visual Canvas Layer -->
     <UiCanvasVfx />
 
@@ -18,7 +18,7 @@
     <LobbySessionsSheet v-if="ui.activeModal === 'sessionsSheet'" />
 
     <!-- Main Active View -->
-    <main class="relative z-10 w-full min-h-screen flex flex-col justify-center items-center">
+    <main class="relative z-10 w-full min-h-[100dvh] flex flex-col items-center">
       <NuxtPage />
     </main>
   </div>

@@ -1,9 +1,9 @@
 <template>
-  <div class="relative w-full max-w-4xl mx-auto h-36 sm:h-44 flex items-end justify-center select-none px-4">
+  <div class="relative w-full max-w-4xl mx-auto h-32 sm:h-44 flex items-end justify-center select-none px-2 sm:px-4">
     <!-- Hand Hint & Action Callout -->
     <div
       v-if="hintText"
-      class="absolute -top-8 px-4 py-1 rounded-full text-xs sm:text-sm font-black shadow-xl backdrop-blur-md transition-all duration-300 z-30"
+      class="absolute -top-7 sm:-top-8 px-3 sm:px-4 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-sm font-black shadow-xl backdrop-blur-md transition-all duration-300 z-30 pointer-events-none"
       :class="isWarning ? 'bg-rose-600 text-white border-2 border-amber-300 animate-pulse' : 'bg-black/85 text-amber-300 border border-amber-400/40'"
     >
       {{ hintText }}
@@ -12,14 +12,14 @@
     <!-- Cards Hand Fan Container -->
     <div
       ref="containerRef"
-      class="relative w-full h-full flex items-end justify-center"
+      class="relative w-full h-full flex items-end justify-center overflow-visible"
       @touchstart="onTouchStart"
       @touchend="onTouchEnd"
     >
       <div
         v-for="(card, index) in cards"
         :key="card.id || index"
-        class="absolute bottom-0 w-16 sm:w-20 md:w-24 transition-all duration-300 transform-gpu origin-bottom cursor-pointer"
+        class="absolute bottom-0 w-12 sm:w-16 md:w-20 transition-all duration-300 transform-gpu origin-bottom cursor-pointer touch-manipulation"
         :style="getCardStyle(index, cards.length, card.id)"
         @click="selectCard(card.id!)"
         @dblclick="quickPlayCard(card.id!)"
@@ -36,7 +36,7 @@
         <!-- Playable Quick Badge (Eat or Discard) -->
         <span
           v-if="game.isMyTurn && isCardPlayable(card.id!) && game.selectedCardId === card.id"
-          class="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.2 rounded-full text-[9px] font-black shadow-md z-50 whitespace-nowrap animate-bounce"
+          class="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 sm:px-2 py-0.2 rounded-full text-[8px] sm:text-[9px] font-black shadow-md z-50 whitespace-nowrap animate-bounce"
           :class="hasEats(card.id!) ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white'"
         >
           {{ hasEats(card.id!) ? 'أكل 🍽️' : 'رمي 🎯' }}
@@ -55,6 +55,13 @@ const game = useGameStore()
 const audio = useAudioStore()
 const containerRef = ref<HTMLElement | null>(null)
 const flyingCardId = ref<string | null>(null)
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 400)
+
+function updateDimensions() {
+  if (typeof window !== 'undefined') {
+    windowWidth.value = window.innerWidth
+  }
+}
 
 const cards = computed(() => game.myHand)
 
@@ -103,16 +110,22 @@ function getCardStyle(index: number, total: number, cardId?: string) {
   if (total === 0) return {}
   const mid = (total - 1) / 2
   const offset = index - mid
-  const spacing = Math.min(38, Math.max(16, 440 / total))
+  const isMobile = windowWidth.value < 640
+
+  // Dynamically bound total span so cards NEVER exceed screen edges
+  const maxSpan = isMobile ? Math.max(220, windowWidth.value - 64) : Math.min(windowWidth.value * 0.8, 520)
+  const maxSingleStep = isMobile ? 24 : 36
+  const spacing = total > 1 ? Math.min(maxSingleStep, maxSpan / (total - 1)) : 0
+
   const x = offset * spacing
-  const rot = offset * (total > 8 ? 2.8 : 4)
-  const y = Math.pow(Math.abs(offset), 1.6) * (total > 8 ? 2.2 : 3)
+  const rot = offset * (isMobile ? (total > 8 ? 1.8 : 2.5) : (total > 8 ? 2.8 : 4))
+  const y = Math.pow(Math.abs(offset), 1.4) * (isMobile ? 1.2 : 2.2)
   const isSel = game.selectedCardId === cardId
   const isFlying = flyingCardId.value === cardId
 
   if (isFlying) {
     return {
-      transform: `translateX(${x}px) translateY(-160px) rotate(0deg) scale(0.85)`,
+      transform: `translateX(${x}px) translateY(-140px) rotate(0deg) scale(0.85)`,
       opacity: '0',
       transition: 'all 0.35s cubic-bezier(0.2, 0.8, 0.2, 1)',
       zIndex: 60,
@@ -120,7 +133,7 @@ function getCardStyle(index: number, total: number, cardId?: string) {
   }
 
   return {
-    transform: `translateX(${x}px) translateY(${isSel ? y - 22 : y}px) rotate(${rot}deg) scale(${isSel ? 1.1 : 1})`,
+    transform: `translateX(${x}px) translateY(${isSel ? y - 18 : y}px) rotate(${rot}deg) scale(${isSel ? 1.12 : 1})`,
     zIndex: isSel ? 45 : 10 + index,
   }
 }
@@ -156,7 +169,7 @@ function onTouchStart(e: TouchEvent) {
 
 function onTouchEnd(e: TouchEvent) {
   const deltaY = touchStartY - e.changedTouches[0].clientY
-  if (deltaY > 50 && game.selectedCardId && game.isMyTurn) {
+  if (deltaY > 40 && game.selectedCardId && game.isMyTurn) {
     quickPlayCard(game.selectedCardId)
   }
 }
@@ -209,10 +222,13 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
+  updateDimensions()
+  window.addEventListener('resize', updateDimensions)
   window.addEventListener('keydown', onKeyDown)
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateDimensions)
   window.removeEventListener('keydown', onKeyDown)
 })
 </script>

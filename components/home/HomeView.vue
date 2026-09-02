@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full min-h-screen flex flex-col items-center pb-24 px-4 overflow-y-auto no-scrollbar">
+  <div class="relative w-full min-h-[100dvh] flex flex-col items-center pb-32 px-3 sm:px-4">
     <!-- Hero Header -->
     <HomeHeroHeader />
 

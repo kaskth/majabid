@@ -9,7 +9,7 @@
   }
 
   body {
-    @apply font-arabic bg-[#07130c] text-[#f2f7f3] min-h-screen overflow-hidden;
+    @apply font-arabic bg-[#07130c] text-[#f2f7f3] min-h-[100dvh] overflow-x-hidden;
     background:
       radial-gradient(1200px 700px at 50% -12%, #1a5c38 0%, transparent 55%),
       radial-gradient(900px 600px at 90% 115%, #14432a 0%, transparent 55%),
