@@ -414,6 +414,10 @@ export const useGameStore = defineStore('game', () => {
     })
   }
 
+  function playEat(cardId: string, rank: string) {
+    playCard('eat', cardId, rank)
+  }
+
   function sendChat(text: string) {
     audio.sfx.chat()
     send({ type: 'chat', text })
