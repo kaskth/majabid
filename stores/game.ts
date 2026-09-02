@@ -286,7 +286,9 @@ export const useGameStore = defineStore('game', () => {
         pending.value = s.pending
         roundResult.value = s.result
 
-        if (s.theme) ui.theme = s.theme
+        if (s.theme && !localStorage.getItem('majabid.themePref')) {
+          ui.theme = s.theme
+        }
         if (s.difficulty) difficulty.value = s.difficulty
         currentScreen.value = 'game'
 

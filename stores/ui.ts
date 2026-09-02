@@ -35,7 +35,14 @@ export const useUiStore = defineStore('ui', () => {
     if (import.meta.client) {
       localStorage.setItem('majabid.themePref', t.toString())
     }
-    showToast('🎨 تم تغيير مظهر الطاولة')
+    const names = ['', 'نجد الملكي 🏛️', 'الصمان الليلي ⛺', 'دبي VIP 🌃', 'قهوة البلد ☕']
+    showToast(`🎨 البيئة: ${names[t] || t}`)
+  }
+
+  function cycleTheme() {
+    const next = theme.value >= 4 ? 1 : theme.value + 1
+    setTheme(next)
+    return next
   }
 
   function openModal(modal: ActiveModal) {
@@ -65,6 +72,7 @@ export const useUiStore = defineStore('ui', () => {
     isToastVisible,
     init,
     setTheme,
+    cycleTheme,
     openModal,
     closeModal,
     showToast,

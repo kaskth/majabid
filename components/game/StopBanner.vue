@@ -16,7 +16,7 @@
     >
       <div
         v-if="game.phase === 'stop' && game.pending"
-        class="fixed bottom-36 sm:bottom-40 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 max-w-[94vw] w-auto select-none"
+        class="fixed top-24 sm:top-28 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 max-w-[94vw] w-auto select-none"
       >
         <!-- Cinematic Ambush Card -->
         <div

@@ -141,15 +141,15 @@ const deckVisualLayers = computed(() => {
 // Table Rim Styles based on Theme
 const tableRimClass = computed(() => {
   switch (ui.theme) {
-    case 2: // Samman Night
-      return 'border-[#1b2b45] bg-gradient-to-b from-[#16233b] via-[#0d1626] to-[#060b13]'
-    case 3: // Dubai Sky Lounge
-      return 'border-[#2d4b8a] bg-gradient-to-b from-[#1c305c] via-[#0f1c3a] to-[#080d1e]'
-    case 4: // Balad Heritage
-      return 'border-[#5c2a1e] bg-gradient-to-b from-[#401a12] via-[#260d08] to-[#120503]'
-    case 1: // Najd Royal
+    case 2: // Samman Desert Night
+      return 'border-[#2a4575] bg-gradient-to-b from-[#1c3259] via-[#0f1d35] to-[#060c17] shadow-[0_20px_50px_rgba(2,6,23,0.9)]'
+    case 3: // Dubai Sky Lounge Neon Glass
+      return 'border-[#06b6d4] bg-gradient-to-b from-[#164e63] via-[#0e2f44] to-[#081b29] shadow-[0_0_35px_rgba(6,182,212,0.4)]'
+    case 4: // Balad Antique Teak Wood
+      return 'border-[#78350f] bg-gradient-to-b from-[#451a03] via-[#290e02] to-[#170501] shadow-[0_20px_50px_rgba(24,9,5,0.9)]'
+    case 1: // Najd Royal Gold Mahogany
     default:
-      return 'border-[#5a3e1b] bg-gradient-to-b from-[#38240d] via-[#201406] to-[#0d0701]'
+      return 'border-[#b45309] bg-gradient-to-b from-[#5a3610] via-[#331e08] to-[#170c03] shadow-[0_20px_50px_rgba(4,21,12,0.9)]'
   }
 })
 
@@ -157,14 +157,14 @@ const tableRimClass = computed(() => {
 const tableFeltClass = computed(() => {
   switch (ui.theme) {
     case 2: // Midnight Navy Velvet
-      return 'border-blue-400/30 bg-gradient-to-b from-[#0e2240] via-[#071325] to-[#040a15]'
-    case 3: // Modern Cyber Glass
-      return 'border-cyan-400/30 bg-gradient-to-b from-[#142852] via-[#0a1633] to-[#050c1f]'
-    case 4: // Heritage Cordovan Leather
-      return 'border-amber-600/30 bg-gradient-to-b from-[#3a150e] via-[#240a05] to-[#120402]'
-    case 1: // Royal Emerald Felt
+      return 'border-blue-400/40 bg-gradient-to-b from-[#0e2b54] via-[#081b36] to-[#030d1c]'
+    case 3: // Cyber Blue Neon Glass
+      return 'border-cyan-400/50 bg-gradient-to-b from-[#143c78] via-[#0b244d] to-[#05132b]'
+    case 4: // Cordovan Crimson Leather
+      return 'border-amber-600/40 bg-gradient-to-b from-[#4a180f] via-[#2c0d08] to-[#140503]'
+    case 1: // Royal Emerald Baize
     default:
-      return 'border-amber-500/30 bg-gradient-to-b from-[#0d3b22] via-[#062414] to-[#031309]'
+      return 'border-amber-400/40 bg-gradient-to-b from-[#0e4526] via-[#082916] to-[#03150b]'
   }
 })
 
