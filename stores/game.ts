@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { useAudioStore } from './audio'
 import { useUiStore } from './ui'
 import { useAuthStore, type UserAccount } from './auth'
+import { useCardAnimation } from '~/composables/useCardAnimation'
 
 export interface CardData {
   id?: string
@@ -18,12 +19,13 @@ export interface SeatData {
   bot: boolean
   team: number
   bubble?: { text: string; at: number } | null
+  reaction?: { emoji: string; at: number } | null
   connected: boolean
   rank?: string
 }
 
 export interface PileData {
-  chain: { rank: string; count: number; jokers: number } | null
+  chain: { rank: string; count: number; jokers: number; suit?: string } | null
   buriedCount: number
 }
 
@@ -39,6 +41,7 @@ export interface LobbyConfig {
   mode: 'teams' | 'ffa'
   target: number
   theme: number
+  difficulty?: 'casual' | 'pro' | 'legend'
 }
 
 export interface RoundResult {
@@ -106,6 +109,7 @@ export const useGameStore = defineStore('game', () => {
   const isFinal = ref<boolean>(false)
   const deckCount = ref<number>(424)
   const matchOver = ref<boolean>(false)
+  const difficulty = ref<'casual' | 'pro' | 'legend'>('pro')
 
   const seats = ref<(SeatData | null)[]>([null, null, null, null])
   const field = ref<CardData[]>([])
@@ -131,6 +135,8 @@ export const useGameStore = defineStore('game', () => {
     rank: string
     count: number
     stops: number[]
+    suit?: string
+    hasJoker?: boolean
   } | null>(null)
 
   const roundResult = ref<RoundResult | null>(null)
@@ -140,6 +146,8 @@ export const useGameStore = defineStore('game', () => {
   const activeSessions = ref<ActiveSession[]>([])
   const leaderboardList = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } }[]>([])
   const leaderboardMy = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } } | null>(null)
+  const lastActionAnnouncement = ref<{ text: string; kind: string; time: number } | null>(null)
+  const cardAnim = useCardAnimation()
 
   // Socket reference
   let socket: WebSocket | null = null
@@ -148,7 +156,7 @@ export const useGameStore = defineStore('game', () => {
   function connect() {
     if (!import.meta.client) return
     const proto = window.location.protocol === 'https:' ? 'wss' : 'ws'
-    const host = window.location.host || '127.0.0.1:3000'
+    const host = window.location.host || '127.0.0.1:3005'
     socket = new WebSocket(`${proto}://${host}`)
 
     socket.onopen = () => {
@@ -263,6 +271,8 @@ export const useGameStore = defineStore('game', () => {
         isSpec.value = !!s.isSpec
         mode.value = s.mode
         target.value = s.target
+        const prevRound = round.value
+        const prevHandLen = myHand.value.length
         round.value = s.round
         dealer.value = s.dealer
         turn.value = s.turn
@@ -276,12 +286,20 @@ export const useGameStore = defineStore('game', () => {
         piles.value = s.piles
         handCounts.value = s.handCounts
         myHand.value = s.myHand || []
+
+        // Trigger dealing animation when round advances or cards dealt
+        if ((s.round > prevRound && prevRound > 0) || (prevHandLen === 0 && (s.myHand || []).length > 0)) {
+          cardAnim.triggerFlight({ type: 'deal' })
+        }
         myOptions.value = s.myOptions || { cards: {}, discard: false, pass: false, mustEat: false }
         canStop.value = s.canStop
         pending.value = s.pending
         roundResult.value = s.result
 
-        if (s.theme) ui.theme = s.theme
+        if (s.theme && !localStorage.getItem('majabid.themePref')) {
+          ui.theme = s.theme
+        }
+        if (s.difficulty) difficulty.value = s.difficulty
         currentScreen.value = 'game'
 
         // Process incoming events
@@ -336,6 +354,9 @@ export const useGameStore = defineStore('game', () => {
     if (logText) {
       logs.value.unshift({ id: nextLogId++, text: logText, kind: ev.kind })
       if (logs.value.length > 50) logs.value.pop()
+      if (['eat', 'jokerEat', 'stop', 'jokerStop', 'discard', 'flip', 'skip'].includes(ev.kind)) {
+        lastActionAnnouncement.value = { text: logText, kind: ev.kind, time: Date.now() }
+      }
     }
 
     // Play sounds
@@ -360,17 +381,58 @@ export const useGameStore = defineStore('game', () => {
         audio.sfx.chat()
         break
     }
+
+    // Trigger Card Physics & Flight Animations
+    switch (ev.kind) {
+      case 'discard':
+        cardAnim.triggerFlight({
+          type: 'discard',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: (ev as any).joker,
+        })
+        break
+      case 'eat':
+      case 'jokerEat':
+        cardAnim.triggerFlight({
+          type: 'eat',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: ev.kind === 'jokerEat' || (ev as any).cardJoker,
+          count: ev.count,
+        })
+        break
+      case 'stop':
+      case 'jokerStop':
+        cardAnim.triggerFlight({
+          type: 'stop',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: ev.kind === 'jokerStop' || (ev as any).joker,
+        })
+        break
+      case 'flip':
+        cardAnim.triggerFlight({
+          type: 'flip',
+          rank: ev.rank,
+          suit: (ev as any).suit,
+        })
+        break
+    }
   }
 
   // Actions
-  function quickPlay() {
+  function quickPlay(preferredTheme?: number) {
     audio.sfx.ui()
-    send({ type: 'quick' })
+    send({ type: 'quick', theme: preferredTheme || ui.theme })
   }
 
-  function createRoom() {
+  function createRoom(preferredTheme?: number) {
     audio.sfx.ui()
-    send({ type: 'create' })
+    send({ type: 'create', theme: preferredTheme || ui.theme })
   }
 
   function joinRoom(code: string) {
@@ -390,6 +452,7 @@ export const useGameStore = defineStore('game', () => {
 
   function updateLobbyConfig(cfg: Partial<LobbyConfig>) {
     audio.sfx.ui()
+    if (cfg.theme) ui.setTheme(cfg.theme)
     send({ type: 'config', ...cfg })
   }
 
@@ -408,11 +471,22 @@ export const useGameStore = defineStore('game', () => {
     })
   }
 
+  function playEat(cardId: string, rank: string) {
+    playCard('eat', cardId, rank)
+  }
+
   function sendChat(text: string) {
+    audio.sfx.chat()
     send({ type: 'chat', text })
   }
 
+  function sendReaction(emoji: string) {
+    audio.sfx.emoji()
+    send({ type: 'reaction', emoji })
+  }
+
   function leaveRoom() {
+    audio.sfx.ui()
     send({ type: 'leave' })
     currentScreen.value = 'home'
     roomCode.value = ''
@@ -459,6 +533,7 @@ export const useGameStore = defineStore('game', () => {
     phase,
     mode,
     target,
+    difficulty,
     isFinal,
     deckCount,
     matchOver,
@@ -478,6 +553,7 @@ export const useGameStore = defineStore('game', () => {
     activeSessions,
     leaderboardList,
     leaderboardMy,
+    lastActionAnnouncement,
     isMyTurn,
     connect,
     send,
@@ -489,7 +565,9 @@ export const useGameStore = defineStore('game', () => {
     updateLobbyConfig,
     startGame,
     playCard,
+    playEat,
     sendChat,
+    sendReaction,
     leaveRoom,
     nextRound,
     rematch,

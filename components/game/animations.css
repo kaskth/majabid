@@ -1,0 +1,50 @@
+/* Lantern floating animation */
+@keyframes floatLantern {
+  0%, 100% { transform: translateY(0) translateX(0); }
+  50% { transform: translateY(-10px) translateX(5px); }
+}
+
+/* Shooting star animation */
+@keyframes shootStar {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(-200px) rotate(360deg); opacity: 0; }
+}
+
+/* Neon pulse animation */
+@keyframes pulseNeon {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Confetti fall animation */
+@keyframes fallConfetti {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100px) rotate(360deg); opacity: 0; }
+}
+
+/* Steam animation */
+@keyframes steam {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.6; }
+  50% { transform: translateY(-5px) scale(1.1); opacity: 0.8; }
+}
+
+/* Table border glow based on theme */
+.gold-glow-active {
+  box-shadow: 0 0 30px rgba(245, 197, 66, 0.5), 0 0 60px rgba(245, 197, 66, 0.2);
+}
+
+.emerald-glow-active {
+  box-shadow: 0 0 30px rgba(23, 194, 107, 0.5), 0 0 60px rgba(23, 194, 107, 0.2);
+}
+
+.amber-glow-active {
+  box-shadow: 0 0 30px rgba(255, 174, 68, 0.5), 0 0 60px rgba(255, 174, 68, 0.2);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0s !important;
+    transition-duration: 0s !important;
+  }
+}

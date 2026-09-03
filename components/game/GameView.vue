@@ -1,46 +1,93 @@
 <template>
   <div
-    class="relative w-full h-screen overflow-hidden flex flex-col justify-between select-none"
-    :class="[
-      game.isFinal ? 'ring-4 ring-red-500/40' : '',
-      tableBackgroundClass
-    ]"
+    class="relative w-full h-[100dvh] flex flex-col justify-between overflow-hidden select-none touch-none transition-colors duration-500"
+    :class="tableBackgroundClass"
   >
-    <!-- Top Bar -->
-    <header class="w-full flex items-center justify-between px-3 py-2 bg-black/60 backdrop-blur-md border-b border-white/10 z-40">
-      <!-- Left side info -->
-      <div class="flex items-center gap-1.5 sm:gap-2">
-        <b class="font-black text-sm sm:text-base text-gold-light">🂡 مجابيد</b>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 text-[11px] font-mono text-gray-300">
+    <!-- ============================================================ -->
+    <!-- PHOTOREALISTIC AI THEME BACKGROUND LAYER                    -->
+    <!-- ============================================================ -->
+    <div class="absolute inset-0 pointer-events-none overflow-hidden z-0">
+      <!-- AI Atmosphere Photo with Smooth Crossfade -->
+      <Transition
+        enter-active-class="transition-opacity duration-700 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="transition-opacity duration-500 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <img
+          :key="ui.theme"
+          :src="currentThemeImage"
+          alt="Atmosphere Background"
+          class="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.42] contrast-[1.1] saturate-[1.15] transform-gpu scale-105"
+        />
+      </Transition>
+
+      <!-- Atmospheric Ambient Color Gradient & Vignette for Readability -->
+      <div class="absolute inset-0 transition-colors duration-700" :class="themeVignetteClass" />
+
+      <!-- Center Depth Shadow for 3D Table Pop -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/60 pointer-events-none" />
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TOP HEADER BAR (Ultra Mobile Friendly)                       -->
+    <!-- ============================================================ -->
+    <header class="w-full flex items-center justify-between px-2 sm:px-4 py-1 landscape:py-0.5 bg-black/80 backdrop-blur-md border-b border-white/10 z-40">
+      <div class="flex items-center gap-1 sm:gap-2 flex-wrap text-xs">
+        <b class="font-black text-xs sm:text-base text-gold-light">🂡 مجابيد</b>
+        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-mono text-amber-200 text-[10px] sm:text-xs">
           {{ game.roomCode }}
         </span>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 text-[11px] font-bold text-gray-200">
-          الجولة {{ game.round }}
+        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-bold text-gray-200 text-[10px] sm:text-xs">
+          ج {{ game.round }}
         </span>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-gold/40 text-[11px] font-mono text-amber-300">
+        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-gold/40 font-mono text-amber-300 text-[10px] sm:text-xs">
           🂠 {{ game.deckCount }}
         </span>
-        <span v-if="game.isFinal" class="px-2 py-0.5 rounded-full bg-red-600 text-white font-bold text-[10px] animate-pulse">
-          ⏳ الطور الختامي
-        </span>
-        <span v-if="game.target > 0" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-bold">
-          🏁 حتى {{ game.target }}
+        <span v-if="game.isFinal" class="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-bold text-[9px] animate-pulse">
+          ختامي
         </span>
       </div>
 
-      <!-- Right side controls -->
-      <div class="flex items-center gap-1.5">
-        <GameChatPicker />
+      <!-- Right Controls -->
+      <div class="flex items-center gap-1 sm:gap-1.5">
+        <!-- Quick Theme Switcher Button -->
         <button
-          class="p-2 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 transition-transform active:scale-95 text-base"
-          :title="audio.isMuted ? 'تشغيل الصوت' : 'كتم الصوت'"
+          class="px-2 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-400/40 text-[11px] font-bold transition-transform active:scale-95 flex items-center gap-1"
+          title="تبديل البيئة"
+          @click="onCycleTheme"
+        >
+          <span>🎨</span>
+          <span class="hidden md:inline">{{ currentThemeName }}</span>
+        </button>
+
+        <!-- Live Scorecard -->
+        <button
+          class="p-1.5 sm:p-2 rounded-full bg-black/60 hover:bg-black/80 text-amber-300 border border-amber-400/40 transition-transform active:scale-95 text-xs sm:text-sm"
+          title="الإحصائيات"
+          @click="ui.openModal('liveStats')"
+        >
+          📊
+        </button>
+
+        <!-- Chat -->
+        <GameChatPicker />
+
+        <!-- Sound Toggle -->
+        <button
+          class="p-1.5 sm:p-2 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 transition-transform active:scale-95 text-xs sm:text-sm"
+          :title="audio.isMuted ? 'تشغيل' : 'كتم'"
           @click="audio.toggleMute"
         >
           {{ audio.isMuted ? '🔇' : '🔊' }}
         </button>
+
+        <!-- Leave Room -->
         <button
-          class="p-2 rounded-full bg-black/60 hover:bg-red-900/60 text-red-300 border border-red-500/30 transition-transform active:scale-95 text-base"
-          title="مغادرة الطاولة"
+          class="p-1.5 sm:p-2 rounded-full bg-black/60 hover:bg-red-900/60 text-red-300 border border-red-500/30 transition-transform active:scale-95 text-xs sm:text-sm"
+          title="مغادرة"
           @click="game.leaveRoom"
         >
           🚪
@@ -48,154 +95,519 @@
       </div>
     </header>
 
-    <!-- Spectator Banner (If spectating) -->
-    <div v-if="game.isSpec" class="w-full bg-amber-500/20 text-amber-300 text-center py-1 text-xs font-bold border-b border-amber-400/30">
-      👁️ تشاهد الجلسة المباشرة كمتفرج (بلا تحكم وبلا كشف للأوراق)
+    <!-- Spectator Banner -->
+    <div v-if="game.isSpec" class="w-full bg-amber-500/20 text-amber-300 text-center py-0.5 text-[11px] font-bold border-b border-amber-400/30 z-30">
+      👁️ تشاهد الجلسة المباشرة كمتفرج
     </div>
 
-    <!-- Live Game Events Log Ticker -->
-    <div class="w-full max-w-xl mx-auto px-2 py-1 flex items-center gap-2 overflow-x-auto no-scrollbar z-30 pointer-events-none">
-      <div
-        v-for="log in game.logs.slice(0, 3)"
-        :key="log.id"
-        class="shrink-0 px-2.5 py-0.5 rounded-full bg-black/65 border border-white/10 text-[10px] sm:text-xs text-gray-200 backdrop-blur-sm shadow-sm"
-      >
-        {{ log.text }}
-      </div>
+    <!-- Turn Spotlight -->
+    <div
+      v-if="game.phase === 'acting' && !game.isSpec"
+      class="absolute pointer-events-none transition-all duration-700 ease-out z-10"
+      :class="turnSpotlightClass"
+    >
+      <div class="w-72 h-72 rounded-full bg-gradient-to-r from-amber-400/15 via-yellow-300/20 to-transparent blur-3xl animate-pulse" />
     </div>
 
-    <!-- Table Playing Board (Seat zones + Center Tray) -->
-    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-between items-center px-3 py-1">
-      <!-- Top Seat Zone (Seat 2 / Partner or Opponent 2) -->
-      <div class="z-20">
-        <GameSeatZone
-          :seat-index="topSeatIndex"
-          :seat="game.seats[topSeatIndex]"
-          :pile="game.piles[topSeatIndex]"
-        />
+    <!-- ============================================================ -->
+    <!-- CENTRAL PLAYING ARENA (Top Seat, Left/Right Seats, 3D Table) -->
+    <!-- ============================================================ -->
+    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-start items-center px-1 sm:px-3 pt-1.5 z-20 overflow-hidden">
+      <!-- 1. MOBILE PORTRAIT VIEW: ALL 3 OTHER PLAYERS IN A SINGLE TOP BAR (Spacious, Uncrowded) -->
+      <div v-if="!isLandscape" class="flex sm:hidden landscape:hidden w-full items-center justify-between gap-1.5 px-1.5 mb-1 z-20 shrink-0">
+        <!-- Left Opponent (Seat 1) -->
+        <div class="w-[32%] max-w-[115px]">
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" />
+        </div>
+        <!-- Center Partner (Seat 2) - 4TH PLAYER PROMINENTLY IN CENTER! -->
+        <div class="w-[34%] max-w-[125px]">
+          <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="true" />
+        </div>
+        <!-- Right Opponent (Seat 3) -->
+        <div class="w-[32%] max-w-[115px]">
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="true" />
+        </div>
       </div>
 
-      <!-- Middle Row: Left Seat, Center Board, Right Seat -->
-      <div class="w-full flex items-center justify-between gap-2 z-10">
-        <!-- Left Seat (Seat 3) -->
-        <div class="shrink-0">
-          <GameSeatZone
-            :seat-index="leftSeatIndex"
-            :seat="game.seats[leftSeatIndex]"
-            :pile="game.piles[leftSeatIndex]"
-          />
+      <!-- 2. DESKTOP / TABLET OR MOBILE LANDSCAPE: Top Partner Centered (100% In View!) -->
+      <div class="hidden sm:flex landscape:flex z-20 mb-0.5 landscape:mb-0 shrink-0">
+        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="isLandscape" />
+      </div>
+
+      <!-- Middle Arena Row (Desktop & Landscape: Left Seat, 3D Table, Right Seat / Portrait: 100% Wide Table) -->
+      <div class="relative w-full flex items-center justify-between gap-1 z-10 shrink-0 my-0.5">
+        <!-- Left Seat (Desktop & Mobile Landscape) -->
+        <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="isLandscape" />
         </div>
 
-        <!-- Center Table (Field & Deck) -->
-        <div class="flex-1 flex justify-center">
+        <!-- 3D Center Table Board (FULL OVAL TABLE IS 100% VISIBLE!) -->
+        <div class="flex-1 flex justify-center w-full max-w-full px-0.5">
           <GameTableBoard />
         </div>
 
-        <!-- Right Seat (Seat 1) -->
-        <div class="shrink-0">
-          <GameSeatZone
-            :seat-index="rightSeatIndex"
-            :seat="game.seats[rightSeatIndex]"
-            :pile="game.piles[rightSeatIndex]"
-          />
+        <!-- Right Seat (Desktop & Mobile Landscape) -->
+        <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="isLandscape" />
         </div>
       </div>
 
-      <!-- Bottom Player Seat Zone (Seat 0 / Me) -->
-      <div class="z-20">
-        <GameSeatZone
-          :seat-index="bottomSeatIndex"
-          :seat="game.seats[bottomSeatIndex]"
-          :pile="game.piles[bottomSeatIndex]"
-        />
+      <!-- 3. FIXED TACTICAL STATUS RIBBON (Guarantees ZERO Layout Shift - Directly Below Table Rim) -->
+      <div class="w-full max-w-md mx-auto h-7 sm:h-8 shrink-0 flex items-center justify-center px-1 my-0.5 z-20 overflow-hidden pointer-events-none select-none">
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+          mode="out-in"
+        >
+          <!-- State A: Ambush in progress -->
+          <div
+            v-if="game.phase === 'stop' && game.pending"
+            key="ambush-active"
+            class="px-3.5 py-0.5 sm:py-1 rounded-full bg-black/90 border border-rose-500/80 text-rose-300 text-[11px] sm:text-xs font-black shadow-[0_0_15px_rgba(225,29,72,0.6)] backdrop-blur-md flex items-center gap-2"
+          >
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            <span>⛔ كمين «وقّف!»:</span>
+            <span class="text-amber-300 font-bold">{{ ambushOwnerName }}</span>
+            <span class="text-white">أكل {{ game.pending.rank }} ({{ game.pending.count }} ورقة)</span>
+            <span class="w-4 h-4 rounded-full bg-rose-600 text-white font-mono font-black text-[10px] flex items-center justify-center">
+              {{ ambushRemainingSeconds }}
+            </span>
+          </div>
+
+          <!-- State B: It's My Turn -->
+          <div
+            v-else-if="game.isMyTurn && game.phase === 'acting'"
+            key="my-turn"
+            class="px-3 sm:px-4 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-black text-[11px] sm:text-xs shadow-gold-glow flex items-center gap-1.5 animate-bounce"
+          >
+            <span>⚡</span>
+            <span>{{ game.myOptions.mustEat ? '⚠️ لديك أكلة إجبارية! اختر ورقة للأكل' : 'دورك الآن! اختر ورقة أو انقر عليها مرتين للعب' }}</span>
+          </div>
+
+          <!-- State C: Recent Action Announcement -->
+          <div
+            v-else-if="game.lastActionAnnouncement"
+            :key="game.lastActionAnnouncement.time"
+            class="px-3 sm:px-3.5 py-0.5 sm:py-1 rounded-full bg-black/90 border border-amber-400/50 text-amber-200 text-[11px] sm:text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-1.5"
+          >
+            <span>📢</span>
+            <span class="truncate max-w-[280px] sm:max-w-xs">{{ game.lastActionAnnouncement.text }}</span>
+          </div>
+
+          <!-- State D: Ambient Round Status (Maintains Exact Reserved Height) -->
+          <div
+            v-else
+            key="idle"
+            class="px-3 py-0.5 rounded-full bg-black/40 border border-white/10 text-gray-400 text-[10px] font-medium flex items-center gap-1.5"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span>طاولة مجابيد • الجولة {{ game.round }} جارية</span>
+          </div>
+        </Transition>
       </div>
     </div>
 
-    <!-- Stop Ambush Banner -->
+    <!-- Stop Ambush Backdrop Vignette (Zero UI Overlays) -->
     <GameStopBanner />
 
-    <!-- Action Buttons Row (Eat / Discard / Pass) -->
-    <div
-      v-if="game.isMyTurn && game.phase === 'acting'"
-      class="w-full max-w-lg mx-auto flex items-center justify-center gap-2 px-3 z-30 my-1"
-    >
-      <!-- Eat Button(s) for selected card -->
-      <template v-if="selectedCardEats.length > 0">
-        <button
-          v-for="r in selectedCardEats"
-          :key="r"
-          class="px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black text-xs sm:text-sm shadow-gold-glow hover:scale-105 active:scale-95 transition-transform"
-          @click="game.playCard('eat', game.selectedCardId!, r)"
+    <!-- 60FPS Hardware Accelerated Realistic Card Physics & Flight Layer -->
+    <GameCardFlightLayer />
+
+    <!-- ============================================================ -->
+    <!-- BOTTOM PLAYER CONTROL DOCK (Clean, Mobile First, No Overlap) -->
+    <!-- ============================================================ -->
+    <div class="relative w-full flex flex-col items-center justify-end z-30 pb-safe mt-auto">
+      <!-- 1. Action Buttons Dock (Floats above player shelf) -->
+      <Transition
+        enter-active-class="transition duration-200 ease-out transform"
+        enter-from-class="scale-90 opacity-0 translate-y-2"
+        enter-to-class="scale-100 opacity-100 translate-y-0"
+        leave-active-class="transition duration-150 ease-in transform"
+        leave-from-class="scale-100 opacity-100"
+        leave-to-class="scale-90 opacity-0"
+      >
+        <!-- Ambush Stop Button (Sits cleanly in the action dock above the shelf, NEVER behind cards!) -->
+        <div
+          v-if="game.phase === 'stop' && game.pending && canStopAct && !hasStopFolded"
+          class="mb-2 landscape:mb-0.5 flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-black/95 backdrop-blur-xl border-2 border-rose-500 shadow-[0_0_25px_rgba(225,29,72,0.85)] z-40 max-w-[96vw] animate-bounce"
         >
-          🍽️ أكل {{ r }}
+          <button
+            class="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-sm shadow-md flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform"
+            @click="executeStop"
+          >
+            <span class="text-base">⛔</span>
+            <span>صرخة «وقّف!» (اخطف الصيدة)</span>
+            <span v-if="matchingStopCardText" class="bg-black/60 px-2 py-0.5 rounded-md text-amber-300 text-xs font-mono font-bold">
+              {{ matchingStopCardText }}
+            </span>
+            <span class="w-5 h-5 rounded-full bg-black/40 text-amber-300 font-mono text-xs font-black flex items-center justify-center border border-white/20">
+              {{ ambushRemainingSeconds }}ث
+            </span>
+          </button>
+          <button
+            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/20 active:scale-95 transition-colors"
+            @click="hasStopFolded = true"
+          >
+            تجاوز
+          </button>
+        </div>
+
+        <!-- Normal Turn Play Buttons (Eat / Discard / Pass) -->
+        <div
+          v-else-if="game.isMyTurn && game.phase === 'acting'"
+          class="mb-1.5 landscape:mb-0.5 flex items-center justify-center gap-2 px-3 py-1.5 landscape:py-0.5 rounded-2xl bg-black/95 backdrop-blur-xl border-2 border-amber-400 shadow-2xl z-40 max-w-[96vw]"
+        >
+          <!-- Eat Button(s) -->
+          <template v-if="selectedCardEats.length > 0">
+            <button
+              v-for="r in selectedCardEats"
+              :key="r"
+              class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white font-black text-sm shadow-[0_0_15px_rgba(16,185,129,0.7)] hover:scale-105 active:scale-95 transition-transform flex items-center gap-1.5 whitespace-nowrap"
+              @click="game.playCard('eat', game.selectedCardId!, r)"
+            >
+              <span>🍽️</span>
+              <span>أكل {{ r }}</span>
+            </button>
+          </template>
+
+          <!-- Discard Button -->
+          <button
+            v-if="canDiscardSelected"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-black font-black text-sm shadow-md hover:scale-105 active:scale-95 transition-transform flex items-center gap-1.5 whitespace-nowrap"
+            @click="game.playCard('discard', game.selectedCardId!)"
+          >
+            <span>🎯</span>
+            <span>رمي في الميدان</span>
+          </button>
+
+          <!-- Pass Button -->
+          <button
+            v-if="!game.myOptions.mustEat"
+            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/20 active:scale-95 transition-colors whitespace-nowrap"
+            @click="game.playCard('pass')"
+          >
+            ⏭️ تجاوز
+          </button>
+        </div>
+      </Transition>
+
+      <!-- 2. Player Status & Piles Strip (Portrait: In-Flow. Landscape: Docked to corners) -->
+      <div
+        v-if="!isLandscape"
+        class="w-full max-w-lg mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 text-xs mb-3 sm:mb-4 select-none relative z-30"
+      >
+        <!-- Player Pile (Buried & Chain) -->
+        <div class="flex items-center gap-2 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow">
+          <span class="text-[10px] text-gray-300 font-mono font-bold">
+            📦 مدفون: {{ playerPile.buriedCount || 0 }}
+          </span>
+          <span v-if="playerPile.chain" class="text-[10px] text-amber-300 font-bold border-r border-white/10 pr-2">
+            👑 {{ playerPile.chain.rank }} ×{{ playerPile.chain.count }}
+          </span>
+        </div>
+
+        <!-- Player Profile & Emoji Picker -->
+        <div
+          class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border backdrop-blur-md shadow"
+          :class="[
+            game.mySeat % 2 === 0 ? 'bg-blue-950/70 border-blue-500/40' : 'bg-rose-950/70 border-rose-500/40',
+            game.isMyTurn ? 'ring-2 ring-amber-400' : ''
+          ]"
+        >
+          <UiAvatarImg :avatar="playerSeat?.avatar || 'a1'" size="sm" :border="game.isMyTurn ? 'gold' : 'white'" />
+          <div class="flex flex-col text-right leading-none">
+            <div class="flex items-center gap-1">
+              <b class="text-[11px] text-white font-black max-w-[65px] truncate">{{ playerSeat?.name || 'أنت' }}</b>
+              <span v-if="game.dealer === game.mySeat" class="text-[10px]" title="الموزع">🪙</span>
+            </div>
+            <span
+              v-if="game.mode === 'teams'"
+              class="text-[8px] font-black"
+              :class="game.mySeat % 2 === 0 ? 'text-blue-300' : 'text-rose-300'"
+            >
+              {{ game.mySeat % 2 === 0 ? 'أزرق' : 'أحمر' }}
+            </span>
+          </div>
+
+          <!-- Quick Emoji Triggers -->
+          <div class="flex items-center gap-0.5 border-r border-white/15 pr-1 mr-0.5">
+            <button
+              v-for="em in ['🔥', '😎', '👏', '💔']"
+              :key="em"
+              class="text-[11px] hover:scale-130 active:scale-95 transition-transform p-0.5"
+              :title="`تفاعل ${em}`"
+              @click="game.sendReaction(em)"
+            >
+              {{ em }}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Corner Player Pod for Mobile Landscape (Leaves table 100% visible & unblocked!) -->
+      <div
+        v-if="isLandscape"
+        class="fixed bottom-1 left-2 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-xl border bg-black/90 backdrop-blur-md shadow-lg select-none"
+        :class="[
+          game.mySeat % 2 === 0 ? 'bg-blue-950/80 border-blue-500/50' : 'bg-rose-950/80 border-rose-500/50',
+          game.isMyTurn ? 'ring-2 ring-amber-400' : ''
+        ]"
+      >
+        <UiAvatarImg :avatar="playerSeat?.avatar || 'a1'" size="xs" :border="game.isMyTurn ? 'gold' : 'white'" />
+        <div class="flex flex-col text-right leading-none">
+          <div class="flex items-center gap-1">
+            <b class="text-[10px] text-white font-black max-w-[65px] truncate">{{ playerSeat?.name || 'أنت' }}</b>
+            <span v-if="game.dealer === game.mySeat" class="text-[9px]">🪙</span>
+          </div>
+          <span class="text-[8px] text-gray-300 font-mono mt-0.5">📦 {{ playerPile.buriedCount || 0 }}</span>
+        </div>
+      </div>
+
+      <!-- Corner Emoji Reactions for Mobile Landscape -->
+      <div
+        v-if="isLandscape"
+        class="fixed bottom-1 right-2 z-40 flex items-center gap-0.5 px-2 py-1 rounded-xl border border-white/20 bg-black/90 backdrop-blur-md shadow-lg select-none"
+      >
+        <button
+          v-for="em in ['🔥', '😎', '👏', '💔']"
+          :key="em"
+          class="text-xs hover:scale-130 active:scale-95 transition-transform p-0.5"
+          :title="`تفاعل ${em}`"
+          @click="game.sendReaction(em)"
+        >
+          {{ em }}
         </button>
-      </template>
+      </div>
 
-      <!-- Discard Button -->
-      <button
-        v-if="canDiscardSelected"
-        class="px-4 py-2 rounded-2xl bg-slate-800/90 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/20 shadow-md active:scale-95 transition-transform"
-        @click="game.playCard('discard', game.selectedCardId!)"
-      >
-        🎯 ارمِ للميدان
-      </button>
-
-      <!-- Pass Button -->
-      <button
-        v-if="!game.myOptions.mustEat"
-        class="px-3.5 py-2 rounded-2xl bg-black/60 hover:bg-black/80 text-gray-300 font-bold text-xs border border-white/10 active:scale-95 transition-colors"
-        @click="game.playCard('pass')"
-      >
-        ⏭️ تجاوز
-      </button>
+      <!-- 3. Bottom Hand Fan (Unobstructed full width!) -->
+      <div v-if="!game.isSpec" class="w-full">
+        <GameHandFan />
+      </div>
     </div>
 
-    <!-- Player's Hand Fan -->
-    <div class="w-full pb-1 z-30">
-      <GameHandFan />
-    </div>
-
-    <!-- End Round Modal (When round finishes) -->
+    <!-- Round End Modal -->
     <ModalsRoundEndModal v-if="game.phase === 'end'" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '~/stores/game'
-import { useUiStore } from '~/stores/ui'
 import { useAudioStore } from '~/stores/audio'
+import { useUiStore } from '~/stores/ui'
 
 const game = useGameStore()
-const ui = useUiStore()
 const audio = useAudioStore()
+const ui = useUiStore()
 
-// Seat placement relative to current player
-const bottomSeatIndex = computed(() => (game.mySeat >= 0 ? game.mySeat : 0))
-const rightSeatIndex = computed(() => (bottomSeatIndex.value + 1) % 4)
-const topSeatIndex = computed(() => (bottomSeatIndex.value + 2) % 4)
-const leftSeatIndex = computed(() => (bottomSeatIndex.value + 3) % 4)
+const isLandscape = ref(false)
+
+function checkLandscape() {
+  if (typeof window !== 'undefined') {
+    isLandscape.value = window.innerWidth > window.innerHeight && window.innerHeight <= 520
+  }
+}
+
+onMounted(() => {
+  checkLandscape()
+  window.addEventListener('resize', checkLandscape)
+  window.addEventListener('orientationchange', checkLandscape)
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', checkLandscape)
+    window.removeEventListener('orientationchange', checkLandscape)
+  }
+})
+
+// Relative seat positions for other players (top, left, right)
+const bottomSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? game.mySeat : 0
+})
+
+const leftSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 1) % 4 : 1
+})
+
+const topSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 2) % 4 : 2
+})
+
+const rightSeatIndex = computed(() => {
+  return game.mySeat >= 0 ? (game.mySeat + 3) % 4 : 3
+})
+
+// Player's seat & pile data
+const playerSeat = computed(() => {
+  return game.seats[bottomSeatIndex.value]
+})
+
+const playerPile = computed(() => {
+  return game.piles[bottomSeatIndex.value] || { chain: null, buriedCount: 0 }
+})
+
+const currentThemeName = computed(() => {
+  switch (ui.theme) {
+    case 2: return 'الصمان ⛺'
+    case 3: return 'دبي 🌃'
+    case 4: return 'البلد ☕'
+    case 1:
+    default: return 'نجد 🏛️'
+  }
+})
+
+function onCycleTheme() {
+  const next = ui.cycleTheme()
+  if (game.roomCode) {
+    game.updateLobbyConfig({ theme: next })
+  }
+}
+
+const turnSpotlightClass = computed(() => {
+  if (game.turn === bottomSeatIndex.value) {
+    return 'bottom-16 left-1/2 -translate-x-1/2'
+  }
+  if (game.turn === topSeatIndex.value) {
+    return 'top-10 left-1/2 -translate-x-1/2'
+  }
+  if (game.turn === leftSeatIndex.value) {
+    return 'top-1/3 left-4 -translate-y-1/2'
+  }
+  return 'top-1/3 right-4 -translate-y-1/2'
+})
 
 const selectedCardEats = computed(() => {
   if (!game.selectedCardId) return []
-  return game.myOptions.cards[game.selectedCardId]?.eats || []
+  const opt = game.myOptions.cards[game.selectedCardId]
+  return opt?.eats || []
 })
 
 const canDiscardSelected = computed(() => {
   if (!game.selectedCardId) return false
-  return game.myOptions.cards[game.selectedCardId]?.discard || false
+  const opt = game.myOptions.cards[game.selectedCardId]
+  return !!opt?.discard
 })
+
+// Ambush State & Action Handlers (Zero Overlap with Cards)
+const hasStopFolded = ref(false)
+
+watch(
+  () => game.pending?.tStop,
+  () => {
+    hasStopFolded.value = false
+  }
+)
+
+const isPendingOwner = computed(() => {
+  if (!game.pending) return false
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  return ownerSeat === game.mySeat
+})
+
+const canStopAct = computed(() => {
+  if (game.isSpec) return false
+  if (isPendingOwner.value) return false
+  if (game.mySeat < 0) return false
+  return game.myStopCards.length > 0
+})
+
+const matchingStopCard = computed(() => {
+  if (!canStopAct.value) return null
+  return game.myStopCards[0]
+})
+
+const matchingStopCardText = computed(() => {
+  if (!matchingStopCard.value) return ''
+  if (matchingStopCard.value.joker) return '🃏 جوكر'
+  return `${matchingStopCard.value.suit}${matchingStopCard.value.rank}`
+})
+
+const ambushOwnerName = computed(() => {
+  if (!game.pending) return 'الخصم'
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  if (ownerSeat === undefined || ownerSeat === null) return 'الخصم'
+  const s = game.seats[ownerSeat]
+  return s?.name || `لاعب ${ownerSeat + 1}`
+})
+
+const nowTime = ref(Date.now())
+let nowInterval: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  nowInterval = setInterval(() => {
+    nowTime.value = Date.now()
+  }, 100)
+})
+
+onUnmounted(() => {
+  if (nowInterval) clearInterval(nowInterval)
+})
+
+const ambushRemainingSeconds = computed(() => {
+  if (!game.pending?.tStop) return 0
+  return Math.max(0, Math.ceil((game.pending.tStop - nowTime.value) / 1000))
+})
+
+function executeStop() {
+  if (!canStopAct.value || !matchingStopCard.value) return
+  audio.sfx.stopAmbush()
+  game.playCard('stop', matchingStopCard.value.id)
+}
 
 const tableBackgroundClass = computed(() => {
   switch (ui.theme) {
-    case 1:
-      return 'bg-gradient-to-b from-[#0e2c1a] via-[#07190f] to-[#040c07]'
-    case 2:
-      return 'bg-gradient-to-b from-[#3a0c12] via-[#1f0509] to-[#0d0204]'
-    case 3:
-      return 'bg-gradient-to-b from-[#0d1d3a] via-[#060e1f] to-[#02050d]'
+    case 2: // Samman Night Sky
+      return 'bg-[#020617]'
+    case 3: // Dubai Sky-Lounge
+      return 'bg-[#060a1e]'
+    case 4: // Balad Heritage
+      return 'bg-[#180905]'
+    case 1: // Najd Royal
     default:
-      return 'bg-gradient-to-b from-[#0e2c1a] via-[#07190f] to-[#040c07]'
+      return 'bg-[#04150c]'
   }
 })
+
+const currentThemeImage = computed(() => {
+  switch (ui.theme) {
+    case 2: return '/images/themes/theme_2.jpg'
+    case 3: return '/images/themes/theme_3.jpg'
+    case 4: return '/images/themes/theme_4.jpg'
+    case 1:
+    default: return '/images/themes/theme_1.jpg'
+  }
+})
+
+const themeVignetteClass = computed(() => {
+  switch (ui.theme) {
+    case 2: // Samman Night Sky
+      return 'bg-gradient-to-b from-black/60 via-blue-950/30 to-black/85'
+    case 3: // Dubai VIP Neon
+      return 'bg-gradient-to-b from-black/60 via-indigo-950/30 to-black/85'
+    case 4: // Balad Heritage Amber
+      return 'bg-gradient-to-b from-black/60 via-amber-950/30 to-black/85'
+    case 1: // Najd Royal Emerald
+    default:
+      return 'bg-gradient-to-b from-black/60 via-emerald-950/30 to-black/85'
+  }
+})
+
+function getThemeBackground(t: number) {
+  switch (t) {
+    case 2: // Samman Desert Starlight
+      return { background: 'radial-gradient(ellipse at top, #0c1c38 0%, #020617 100%)' }
+    case 3: // Dubai Skyline Night
+      return { background: 'radial-gradient(ellipse at top, #14224c 0%, #060a1e 100%)' }
+    case 4: // Balad Heritage Stone & Wood
+      return { background: 'radial-gradient(ellipse at top, #36140d 0%, #180905 100%)' }
+    case 1: // Najd Emerald Luxury
+    default:
+      return 'radial-gradient(ellipse at top, #0a2d1a 0%, #04150c 100%)'
+  }
+}
 </script>

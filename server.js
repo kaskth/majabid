@@ -12,7 +12,7 @@ const E = require('./engine.js');
 const B = require('./bots.js');
 const USERS = require('./users.js');
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3005;
 const TURN_MS = +(process.env.TURN_MS || 20000);        // 20 ثانية للدور
 const STOP_MS = +(process.env.STOP_MS || 5000);         // نافذة «وقّف!» 5 ثوانٍ
 const FINAL_STOP_MS = +(process.env.FINAL_STOP_MS || 4000); // نافذة الطور الختامي
@@ -83,14 +83,18 @@ const genCode = () => {
   return c;
 };
 
-function mkPlayer(pid, name, avatar, isBot = false) {
+function mkPlayer(pid, name, avatar, isBot = false, personalityId = null) {
   // control: 'human' | 'bot' — من يحرّك المقعد حقيقةً (بعد الانقطاع يكمّل البوت)
-  return { pid, name, avatar, isBot, control: isBot ? 'bot' : 'human', connected: false, ws: null, lastSeq: 0, lastBubble: null };
+  return {
+    pid, name, avatar, isBot, personalityId,
+    control: isBot ? 'bot' : 'human',
+    connected: false, ws: null, lastSeq: 0, lastBubble: null
+  };
 }
 
 function mkBotSeat() {
-  const b = B.BOT_NAMES[botIdx++ % B.BOT_NAMES.length];
-  return mkPlayer('bot-' + crypto.randomBytes(4).toString('hex'), b.name, b.avatar, true);
+  const p = B.BOT_PERSONALITIES[botIdx++ % B.BOT_PERSONALITIES.length];
+  return mkPlayer('bot-' + crypto.randomBytes(4).toString('hex'), p.name, p.avatar, true, p.id);
 }
 
 function findFreeSeat(room) {
@@ -98,12 +102,13 @@ function findFreeSeat(room) {
   return -1;
 }
 
-function createRoom(hostPid, name, avatar) {
+function createRoom(hostPid, name, avatar, theme = 1) {
   const code = genCode();
+  const validTheme = Math.min(4, Math.max(1, Number(theme) || 1));
   const room = {
     code, phase: 'lobby', seats: emptySeats(),
     specs: [],                 // المشاهدون (بث الجلسات)
-    config: { mode: 'teams', target: 0, theme: 1 },
+    config: { mode: 'teams', target: 0, theme: validTheme, difficulty: 'pro' },
     game: null, events: [], nextEvSeq: 1,
     stopDeadline: null, actionDeadline: null,
     windowId: 0, finalSteal: null, t0: Date.now(),
@@ -150,17 +155,25 @@ function viewFor(room, seat) {
     now: Date.now(), // معايرة ساعة العميل
     room: room.code, phase: room.phase, seat: isSpec ? -1 : seat,
     isSpec, mode: g.mode, target: g.target, theme: room.config.theme,
+    difficulty: room.config.difficulty || 'pro',
     matchOver: room.matchOver, specs: room.specs.length,
     round: g.round, dealer: g.dealer,
     isFinal: g.deck.length === 0, deckCount: g.deck.length,
     seats: room.seats.map((s, i) => s ? {
       i, name: s.name, avatar: s.avatar, isBot: s.isBot, bot: s.control === 'bot', team: i % 2,
-      bubble: s.lastBubble, connected: s.connected,
+      bubble: s.lastBubble && (Date.now() - s.lastBubble.at < 5000) ? s.lastBubble : null,
+      reaction: s.lastReaction && (Date.now() - s.lastReaction.at < 3500) ? s.lastReaction : null,
+      connected: s.connected,
       rank: (() => { const u = USERS.getByPid(s.pid); return u ? USERS.rankOf(u.pts || 0).cur.emblem : ''; })(),
     } : null),
     field: g.field.map((c) => ({ r: c.rank, s: c.suit })),
     piles: g.piles.map((p) => ({
-      chain: p.chain ? { rank: p.chain.rank, count: p.chain.cards.length, jokers: p.chain.jokers } : null,
+      chain: p.chain ? {
+        rank: p.chain.rank,
+        count: p.chain.cards.length,
+        jokers: p.chain.jokers,
+        suit: p.chain.cards[p.chain.cards.length - 1]?.suit || '♠',
+      } : null,
       buriedCount: p.buried.length + p.jokers,
     })),
     handCounts: g.hands.map((h) => h.length),
@@ -169,7 +182,14 @@ function viewFor(room, seat) {
     myHand: !isSpec ? g.hands[seat].map((c) => ({ id: c.id, r: c.rank, s: c.suit, j: c.joker })) : [],
     myOptions: isSpec ? { cards: {}, discard: false, pass: false, mustEat: false } : E.myOptions(g, seat),
     canStop: !isSpec ? E.canStop(g, seat) : false,
-    pending: g.pending ? { owner: g.pending.owner, rank: g.pending.rank, count: g.pending.cards.length, stops: g.pending.stops } : null,
+    pending: g.pending ? {
+      owner: g.pending.owner,
+      rank: g.pending.rank,
+      count: g.pending.cards.length,
+      stops: g.pending.stops,
+      suit: g.pending.cards[g.pending.cards.length - 1]?.suit || '♥',
+      hasJoker: g.pending.jokers > 0,
+    } : null,
     result: g.phase === 'end' ? g.roundResult : null,
   };
 }
@@ -268,11 +288,36 @@ function autoPassIfEmpty(room) {
 function botTurnMove(room, s) {
   const g = room.game;
   if (!g || g.phase !== 'acting' || g.turn !== s) return;
-  const d = B.botAct(g, s);
+  const slot = room.seats[s];
+  const persId = slot ? slot.personalityId : null;
+  const diff = room.config.difficulty || 'pro';
+  const d = B.botAct(g, s, persId, diff);
   let r = d.act === 'eat' ? E.eat(g, s, d.card, d.rank)
     : d.act === 'discard' ? E.discard(g, s, d.card)
     : E.pass(g, s);
   if (!r.ok) r = E.pass(g, s);
+
+  // Trigger speech bubble and reactions for bot
+  if (r.ok && slot) {
+    if (d.act === 'eat') {
+      const q = B.getBotQuote(persId, d.joker ? 'joker' : 'eat');
+      if (q && Math.random() < 0.8) slot.lastBubble = { text: q, at: Date.now() };
+      const em = B.getBotEmoji(d.joker ? 'joker' : 'eat');
+      if (em) slot.lastReaction = { emoji: em, at: Date.now() };
+    }
+    // Check if any victims were robbed
+    if (r.event && r.event.victims && r.event.victims.length) {
+      for (const vicSeat of r.event.victims) {
+        const vicSlot = room.seats[vicSeat];
+        if (vicSlot && vicSlot.control === 'bot') {
+          const vq = B.getBotQuote(vicSlot.personalityId, 'robbed');
+          if (vq && Math.random() < 0.75) vicSlot.lastBubble = { text: vq, at: Date.now() };
+          vicSlot.lastReaction = { emoji: B.getBotEmoji('robbed'), at: Date.now() };
+        }
+      }
+    }
+  }
+
   handlePlayResult(room, s, r);
 }
 
@@ -280,10 +325,20 @@ function botStopDecision(room, s, wid) {
   const g = room.game;
   if (!g || g.phase !== 'stop' || !g.pending || wid !== room.windowId) return;
   if (!E.canStop(g, s)) return;
-  const d = B.botAct(g, s);
+  const slot = room.seats[s];
+  const persId = slot ? slot.personalityId : null;
+  const diff = room.config.difficulty || 'pro';
+  const d = B.botAct(g, s, persId, diff);
   if (d.act !== 'stop') return;
   const r = E.stop(g, s, d.card);
   if (!r.ok) return;
+
+  if (slot) {
+    const q = B.getBotQuote(persId, d.joker ? 'joker' : 'stop');
+    if (q) slot.lastBubble = { text: q, at: Date.now() };
+    slot.lastReaction = { emoji: B.getBotEmoji('stop'), at: Date.now() };
+  }
+
   if (r.event) logEvent(room, r.event);
   if (g.deck.length === 0) {
     resolveStopWindow(room, room.windowId); // تحسم فوراً في الطور الختامي
@@ -490,7 +545,7 @@ wss.on('connection', (ws) => {
     if (m.type === 'create') {
       if (client.roomCode) return;
       if (ROOMS.size > 500) return send(ws, { type: 'error', msg: 'الخوادم ممتلئة — حاول لاحقاً' });
-      const room = createRoom(client.pid, client.name, client.avatar);
+      const room = createRoom(client.pid, client.name, client.avatar, m.theme);
       const slot = room.seats[0];
       slot.ws = ws; slot.connected = true; slot.lastSeq = 0;
       client.roomCode = room.code; client.seat = 0;
@@ -518,7 +573,11 @@ wss.on('connection', (ws) => {
     if (m.type === 'quick') {
       if (client.roomCode) return;
       let room = [...ROOMS.values()].find((r) => r.phase === 'lobby' && findFreeSeat(r) >= 0);
-      if (!room) room = createRoom(client.pid, client.name, client.avatar);
+      if (!room) {
+        room = createRoom(client.pid, client.name, client.avatar, m.theme);
+      } else if (m.theme) {
+        room.config.theme = Math.min(4, Math.max(1, Number(m.theme) || 1));
+      }
       const idx = findFreeSeat(room);
       const slot = mkPlayer(client.pid, client.name, client.avatar);
       slot.ws = ws; slot.connected = true;
@@ -569,11 +628,17 @@ wss.on('connection', (ws) => {
 
     if (m.type === 'config') {
       const room = ROOMS.get(client.roomCode);
-      if (!room || room.phase !== 'lobby' || client.seat < 0) return;
-      if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
-      if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
-      if ([1, 2, 3].includes(+m.theme)) room.config.theme = +m.theme;
-      lobbyBroadcast(room);
+      if (!room || client.seat < 0) return;
+      if (room.phase === 'lobby') {
+        if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
+        if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
+        if (['casual', 'pro', 'legend'].includes(m.difficulty)) room.config.difficulty = m.difficulty;
+      }
+      if ([1, 2, 3, 4].includes(+m.theme)) {
+        room.config.theme = +m.theme;
+        if (room.phase === 'playing') broadcast(room);
+      }
+      if (room.phase === 'lobby') lobbyBroadcast(room);
       return;
     }
 
@@ -655,6 +720,17 @@ wss.on('connection', (ws) => {
       logEvent(room, { kind: 'chat', text: `${who}: ${text}` });
       const s = room.seats[client.seat];
       if (s) s.lastBubble = { text, at: Date.now() };
+      broadcast(room);
+      return;
+    }
+
+    if (m.type === 'reaction') {
+      const room = ROOMS.get(client.roomCode);
+      if (!room || !room.game || client.seat < 0) return;
+      const emoji = String(m.emoji || '').slice(0, 4);
+      if (!emoji) return;
+      const s = room.seats[client.seat];
+      if (s) s.lastReaction = { emoji, at: Date.now() };
       broadcast(room);
       return;
     }
@@ -776,6 +852,6 @@ setInterval(() => {
   }
 }, 200);
 
-server.listen(PORT, () => {
-  console.log(`🃏 مجابيد جاهز على http://0.0.0.0:${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🃏 مجابيد جاهز على http://localhost:${PORT}`);
 });
