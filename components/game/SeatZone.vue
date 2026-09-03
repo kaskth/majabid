@@ -1,17 +1,18 @@
 <template>
   <div :id="`seat-zone-${seatIndex}`" class="relative flex flex-col items-center justify-center transition-all duration-300">
-    <!-- Speech Bubble -->
+    <!-- Speech Bubble (Smart Placement & Tail) -->
     <Transition
       enter-active-class="transition duration-200 ease-out transform"
-      enter-from-class="scale-75 opacity-0 -translate-y-2"
-      enter-to-class="scale-100 opacity-100 translate-y-0"
+      enter-from-class="scale-75 opacity-0"
+      enter-to-class="scale-100 opacity-100"
       leave-active-class="transition duration-150 ease-in transform"
       leave-from-class="scale-100 opacity-100"
       leave-to-class="scale-75 opacity-0"
     >
       <div
         v-if="hasBubble"
-        class="absolute -top-12 z-50 px-2.5 py-1 bg-black/95 text-amber-200 rounded-xl shadow-2xl border border-amber-400/60 text-[11px] font-black max-w-[190px] text-center whitespace-normal break-words after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-amber-400 pointer-events-none"
+        class="absolute z-50 px-2.5 py-1 bg-black/95 text-amber-200 rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.8)] border border-amber-400/80 text-[11px] font-black max-w-[170px] min-w-[70px] text-center whitespace-normal break-words pointer-events-none"
+        :class="[bubbleWrapperClass, bubbleTailClass]"
       >
         {{ seat?.bubble?.text }}
       </div>
@@ -234,10 +235,40 @@ interface Props {
   seat: SeatData | null
   pile?: PileData
   compact?: boolean
+  placement?: 'top' | 'left' | 'right' | 'bottom'
 }
 
 const props = withDefaults(defineProps<Props>(), {
   compact: false,
+  placement: 'top',
+})
+
+const bubbleWrapperClass = computed(() => {
+  if (props.placement === 'left') {
+    return 'top-1/2 -translate-y-1/2 left-full ml-2'
+  }
+  if (props.placement === 'right') {
+    return 'top-1/2 -translate-y-1/2 right-full mr-2'
+  }
+  if (props.placement === 'bottom') {
+    return 'bottom-full mb-2 left-1/2 -translate-x-1/2'
+  }
+  // Default 'top': place BELOW the top player pod so it points UP to him and stays 100% visible on table!
+  return 'top-full mt-2 left-1/2 -translate-x-1/2'
+})
+
+const bubbleTailClass = computed(() => {
+  if (props.placement === 'left') {
+    return "after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:right-full after:border-4 after:border-transparent after:border-r-amber-400"
+  }
+  if (props.placement === 'right') {
+    return "after:content-[''] after:absolute after:top-1/2 after:-translate-y-1/2 after:left-full after:border-4 after:border-transparent after:border-l-amber-400"
+  }
+  if (props.placement === 'bottom') {
+    return "after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-amber-400"
+  }
+  // Pointing UP to the top player
+  return "after:content-[''] after:absolute after:bottom-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-b-amber-400"
 })
 
 const game = useGameStore()

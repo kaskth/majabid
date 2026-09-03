@@ -41,6 +41,10 @@ export const useAuthStore = defineStore('auth', () => {
     guestName.value = name.trim().slice(0, 16)
     if (import.meta.client) {
       localStorage.setItem('majabid.name', guestName.value)
+      try {
+        const game = useGameStore()
+        game.syncIdentity()
+      } catch {}
     }
   }
 
@@ -48,6 +52,10 @@ export const useAuthStore = defineStore('auth', () => {
     guestAvatar.value = av
     if (import.meta.client) {
       localStorage.setItem('majabid.avatar', av)
+      try {
+        const game = useGameStore()
+        game.syncIdentity()
+      } catch {}
     }
   }
 

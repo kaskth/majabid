@@ -37,13 +37,29 @@
     <header class="w-full flex items-center justify-between px-2 sm:px-4 py-1 landscape:py-0.5 bg-black/80 backdrop-blur-md border-b border-white/10 z-40">
       <div class="flex items-center gap-1 sm:gap-2 flex-wrap text-xs">
         <b class="font-black text-xs sm:text-base text-gold-light">🂡 مجابيد</b>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-mono text-amber-200 text-[10px] sm:text-xs">
-          {{ game.roomCode }}
-        </span>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-bold text-gray-200 text-[10px] sm:text-xs">
+        <!-- Interactive Copyable Room Code -->
+        <button
+          class="px-2 py-0.5 rounded-full bg-black/60 hover:bg-black/90 border border-white/15 hover:border-amber-400 font-mono text-amber-200 text-[10px] sm:text-xs transition-colors flex items-center gap-1 cursor-pointer active:scale-95"
+          title="اضغط لنسخ كود الطاولة"
+          @click="onCopyRoomCode"
+        >
+          <span>{{ game.roomCode }}</span>
+          <span class="text-[9px] opacity-60">📋</span>
+        </button>
+
+        <!-- Round Badge with Tooltip -->
+        <span
+          class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-bold text-gray-200 text-[10px] sm:text-xs"
+          :title="`الجولة رقم ${game.round}`"
+        >
           ج {{ game.round }}
         </span>
-        <span class="px-2 py-0.5 rounded-full bg-black/60 border border-gold/40 font-mono text-amber-300 text-[10px] sm:text-xs">
+
+        <!-- Deck Count with Tooltip -->
+        <span
+          class="px-2 py-0.5 rounded-full bg-black/60 border border-gold/40 font-mono text-amber-300 text-[10px] sm:text-xs"
+          :title="`متبقي في الرزمة: ${game.deckCount} ورقة`"
+        >
           🂠 {{ game.deckCount }}
         </span>
         <span v-if="game.isFinal" class="px-1.5 py-0.2 rounded-full bg-red-600 text-white font-bold text-[9px] animate-pulse">
@@ -117,28 +133,28 @@
       <div v-if="!isLandscape" class="flex sm:hidden landscape:hidden w-full items-center justify-between gap-1.5 px-1.5 mb-1 z-20 shrink-0">
         <!-- Left Opponent (Seat 1) -->
         <div class="w-[32%] max-w-[115px]">
-          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" />
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" placement="top" />
         </div>
         <!-- Center Partner (Seat 2) - 4TH PLAYER PROMINENTLY IN CENTER! -->
         <div class="w-[34%] max-w-[125px]">
-          <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="true" />
+          <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="true" placement="top" />
         </div>
         <!-- Right Opponent (Seat 3) -->
         <div class="w-[32%] max-w-[115px]">
-          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="true" />
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="true" placement="top" />
         </div>
       </div>
 
       <!-- 2. DESKTOP / TABLET OR MOBILE LANDSCAPE: Top Partner Centered (100% In View!) -->
       <div class="hidden sm:flex landscape:flex z-20 mb-0.5 landscape:mb-0 shrink-0">
-        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="isLandscape" />
+        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="isLandscape" placement="top" />
       </div>
 
       <!-- Middle Arena Row (Desktop & Landscape: Left Seat, 3D Table, Right Seat / Portrait: 100% Wide Table) -->
       <div class="relative w-full flex items-center justify-between gap-1 z-10 shrink-0 my-0.5">
         <!-- Left Seat (Desktop & Mobile Landscape) -->
         <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
-          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="isLandscape" />
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="isLandscape" placement="left" />
         </div>
 
         <!-- 3D Center Table Board (FULL OVAL TABLE IS 100% VISIBLE!) -->
@@ -148,7 +164,7 @@
 
         <!-- Right Seat (Desktop & Mobile Landscape) -->
         <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
-          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="isLandscape" />
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="isLandscape" placement="right" />
         </div>
       </div>
 
@@ -311,17 +327,35 @@
         </div>
 
         <!-- Player Profile & Emoji Picker -->
+        <!-- Player Profile & Emoji Picker -->
         <div
-          class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl border backdrop-blur-md shadow"
+          class="relative flex items-center gap-1.5 px-2.5 py-1 rounded-xl border backdrop-blur-md shadow"
           :class="[
             game.mySeat % 2 === 0 ? 'bg-blue-950/70 border-blue-500/40' : 'bg-rose-950/70 border-rose-500/40',
             game.isMyTurn ? 'ring-2 ring-amber-400' : ''
           ]"
         >
-          <UiAvatarImg :avatar="playerSeat?.avatar || 'a1'" size="sm" :border="game.isMyTurn ? 'gold' : 'white'" />
+          <!-- Floating Reaction Emoji on Portrait Player Shelf! -->
+          <Transition
+            enter-active-class="transition duration-300 ease-out transform"
+            enter-from-class="scale-0 opacity-0 translate-y-2"
+            enter-to-class="scale-125 opacity-100 -translate-y-3"
+            leave-active-class="transition duration-200 ease-in transform"
+            leave-from-class="scale-125 opacity-100"
+            leave-to-class="scale-0 opacity-0 -translate-y-6"
+          >
+            <div
+              v-if="localReaction || playerSeat?.reaction?.emoji"
+              class="absolute -top-7 right-3 text-2xl filter drop-shadow animate-bounce select-none pointer-events-none z-50"
+            >
+              {{ localReaction || playerSeat?.reaction?.emoji }}
+            </div>
+          </Transition>
+
+          <UiAvatarImg :avatar="myPlayerAvatar" size="sm" :border="game.isMyTurn ? 'gold' : 'white'" />
           <div class="flex flex-col text-right leading-none">
             <div class="flex items-center gap-1">
-              <b class="text-[11px] text-white font-black max-w-[65px] truncate">{{ playerSeat?.name || 'أنت' }}</b>
+              <b class="text-[11px] text-white font-black max-w-[65px] truncate">{{ myPlayerName }}</b>
               <span v-if="game.dealer === game.mySeat" class="text-[10px]" title="الموزع">🪙</span>
             </div>
             <span
@@ -340,7 +374,7 @@
               :key="em"
               class="text-[11px] hover:scale-130 active:scale-95 transition-transform p-0.5"
               :title="`تفاعل ${em}`"
-              @click="game.sendReaction(em)"
+              @click="triggerPlayerReaction(em)"
             >
               {{ em }}
             </button>
@@ -357,10 +391,27 @@
           game.isMyTurn ? 'ring-2 ring-amber-400' : ''
         ]"
       >
-        <UiAvatarImg :avatar="playerSeat?.avatar || 'a1'" size="xs" :border="game.isMyTurn ? 'gold' : 'white'" />
+        <!-- Floating Active Reaction on Landscape Player Pod! -->
+        <Transition
+          enter-active-class="transition duration-300 ease-out transform"
+          enter-from-class="scale-0 opacity-0 translate-y-2"
+          enter-to-class="scale-125 opacity-100 -translate-y-3"
+          leave-active-class="transition duration-200 ease-in transform"
+          leave-from-class="scale-125 opacity-100"
+          leave-to-class="scale-0 opacity-0 -translate-y-6"
+        >
+          <div
+            v-if="localReaction || playerSeat?.reaction?.emoji"
+            class="absolute -top-7 right-2 text-2xl filter drop-shadow animate-bounce select-none pointer-events-none z-50"
+          >
+            {{ localReaction || playerSeat?.reaction?.emoji }}
+          </div>
+        </Transition>
+
+        <UiAvatarImg :avatar="myPlayerAvatar" size="xs" :border="game.isMyTurn ? 'gold' : 'white'" />
         <div class="flex flex-col text-right leading-none">
           <div class="flex items-center gap-1">
-            <b class="text-[10px] text-white font-black max-w-[65px] truncate">{{ playerSeat?.name || 'أنت' }}</b>
+            <b class="text-[10px] text-white font-black max-w-[65px] truncate">{{ myPlayerName }}</b>
             <span v-if="game.dealer === game.mySeat" class="text-[9px]">🪙</span>
           </div>
           <span class="text-[8px] text-gray-300 font-mono mt-0.5">📦 {{ playerPile.buriedCount || 0 }}</span>
@@ -377,7 +428,7 @@
           :key="em"
           class="text-xs hover:scale-130 active:scale-95 transition-transform p-0.5"
           :title="`تفاعل ${em}`"
-          @click="game.sendReaction(em)"
+          @click="triggerPlayerReaction(em)"
         >
           {{ em }}
         </button>
@@ -399,10 +450,32 @@ import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '~/stores/game'
 import { useAudioStore } from '~/stores/audio'
 import { useUiStore } from '~/stores/ui'
+import { useAuthStore } from '~/stores/auth'
 
 const game = useGameStore()
 const audio = useAudioStore()
 const ui = useUiStore()
+const auth = useAuthStore()
+
+const localReaction = ref<string | null>(null)
+let localReactionTimer: any = null
+
+function triggerPlayerReaction(em: string) {
+  audio.sfx.emoji()
+  localReaction.value = em
+  if (localReactionTimer) clearTimeout(localReactionTimer)
+  localReactionTimer = setTimeout(() => {
+    localReaction.value = null
+  }, 2800)
+  game.sendReaction(em)
+}
+
+function onCopyRoomCode() {
+  if (typeof navigator !== 'undefined' && navigator.clipboard) {
+    navigator.clipboard.writeText(game.roomCode)
+    ui.showToast(`تم نسخ كود الطاولة: ${game.roomCode} 📋`)
+  }
+}
 
 const isLandscape = ref(false)
 
@@ -445,6 +518,14 @@ const rightSeatIndex = computed(() => {
 // Player's seat & pile data
 const playerSeat = computed(() => {
   return game.seats[bottomSeatIndex.value]
+})
+
+const myPlayerName = computed(() => {
+  return auth.displayName || playerSeat.value?.name || 'أنت'
+})
+
+const myPlayerAvatar = computed(() => {
+  return auth.currentAvatar || playerSeat.value?.avatar || 'a1'
 })
 
 const playerPile = computed(() => {

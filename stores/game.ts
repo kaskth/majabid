@@ -499,6 +499,14 @@ export const useGameStore = defineStore('game', () => {
     send({ type: 'nextround' })
   }
 
+  function syncIdentity() {
+    send({
+      type: 'identity_update',
+      name: auth.displayName,
+      avatar: auth.currentAvatar,
+    })
+  }
+
   function rematch() {
     audio.sfx.ui()
     send({ type: 'rematch' })
@@ -570,6 +578,7 @@ export const useGameStore = defineStore('game', () => {
     sendReaction,
     leaveRoom,
     nextRound,
+    syncIdentity,
     rematch,
     fetchSessions,
     fetchLeaderboard,

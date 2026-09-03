@@ -1,13 +1,13 @@
 <template>
-  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-0.5 landscape:py-0 landscape:max-w-[460px]">
+  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-0.5 landscape:py-0 landscape:max-w-[540px]">
     <!-- 3D Table Outer Leather Padded Rail -->
     <div
-      class="relative w-full p-2 sm:p-3.5 landscape:p-1 rounded-[28px] sm:rounded-[44px] landscape:rounded-[18px] shadow-[0_15px_35px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-3 sm:border-4 landscape:border-2 transition-all duration-500"
+      class="relative w-full p-2 sm:p-3.5 landscape:p-1.5 rounded-[28px] sm:rounded-[44px] landscape:rounded-[18px] shadow-[0_15px_35px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-3 sm:border-4 landscape:border-2 transition-all duration-500"
       :class="tableRimClass"
     >
       <!-- Golden Inlay Stitched Bezel -->
       <div
-        class="relative w-full rounded-[20px] sm:rounded-[36px] landscape:rounded-[14px] p-1.5 sm:p-3 landscape:p-1 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-1.5 overflow-hidden"
+        class="relative w-full rounded-[20px] sm:rounded-[36px] landscape:rounded-[14px] p-1.5 sm:p-3 landscape:p-1.5 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-1.5 overflow-hidden"
         :class="tableFeltClass"
       >
         <!-- Ambient Table Watermark / Arabesque Motif -->
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Field Center Arena -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[140px] landscape:min-h-[55px] px-1 z-10">
+        <div class="flex-1 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[140px] landscape:min-h-[110px] px-1 z-10">
           <!-- Arena Title & Count -->
           <div class="text-[10px] sm:text-xs font-black tracking-wide mb-1 flex items-center gap-1.5 text-amber-200/90 drop-shadow">
             <span class="text-sm sm:text-base">🎯</span>
@@ -32,26 +32,26 @@
           <div
             id="table-field-target"
             v-if="groupedField.length > 0"
-            class="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-y-auto max-h-[120px] sm:max-h-[180px] landscape:max-h-[85px] no-scrollbar py-0.5"
+            class="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-y-auto max-h-[120px] sm:max-h-[180px] landscape:max-h-[120px] no-scrollbar py-1"
           >
             <div
               v-for="grp in groupedField"
               :key="grp.rank"
-              class="group relative flex items-center justify-center p-0.5 sm:p-1 rounded-xl sm:rounded-2xl bg-black/50 border transition-all duration-300 cursor-pointer"
+              class="group relative flex items-center justify-center rounded-[3.5px] transition-all duration-300 cursor-pointer select-none"
               :class="[
                 canEatRank(grp.rank)
-                  ? 'border-amber-400 shadow-[0_0_14px_rgba(245,197,66,0.45)] -translate-y-1 scale-105 hover:scale-110'
-                  : 'border-white/15 hover:border-amber-400/60 hover:scale-105'
+                  ? 'ring-2 ring-amber-400 shadow-[0_0_15px_rgba(245,197,66,0.6)] -translate-y-1 scale-105'
+                  : 'hover:scale-105 filter drop-shadow-[0_4px_8px_rgba(0,0,0,0.4)]'
               ]"
               :title="canEatRank(grp.rank) ? 'ورقة قابلة للأكل' : `مجموعة ${grp.rank}`"
               @click="onFieldCardClick(grp.rank)"
             >
               <!-- 3D Card Stack Effect -->
-              <div class="relative w-8 sm:w-11 landscape:w-7 h-11 sm:h-15 landscape:h-10">
+              <div class="relative w-8 sm:w-11 landscape:w-7 h-11 sm:h-15 landscape:h-10 rounded-[3px]">
                 <div
                   v-for="k in Math.min(grp.count, 3)"
                   :key="k"
-                  class="absolute inset-0"
+                  class="absolute inset-0 rounded-[3px]"
                   :style="{ transform: `translateY(${-(k - 1) * 2}px) translateX(${(k - 1) * 1}px)` }"
                 >
                   <GameCard :rank="grp.rank" :suit="grp.suit" />

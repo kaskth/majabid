@@ -408,6 +408,9 @@ function awardRound(room, res) {
       x.games.unshift(`${res.winnerSeat === s || (res.winnerTeam >= 0 && s % 2 === res.winnerTeam) ? '🏆' : '🎴'} جولة ${g.round} · ${res.scores[s].total} نقطة${res.matchOver ? ' · نهاية مباراة' : ''}`);
       x.games = x.games.slice(0, 5);
     });
+    if (slot.ws && slot.ws.readyState === 1) {
+      send(slot.ws, { type: 'profile', account: USERS.pubFull(USERS.getByPid(slot.pid)) });
+    }
   }
   res.deltas = deltas;
   return deltas;
@@ -542,8 +545,25 @@ wss.on('connection', (ws) => {
       return;
     }
 
+    if (m.type === 'identity_update') {
+      if (m.name && typeof m.name === 'string') client.name = m.name.trim().slice(0, 16);
+      if (m.avatar && typeof m.avatar === 'string') client.avatar = m.avatar.slice(0, 4);
+      if (client.roomCode) {
+        const room = ROOMS.get(client.roomCode);
+        if (room && client.seat >= 0 && room.seats[client.seat]) {
+          room.seats[client.seat].name = client.name;
+          room.seats[client.seat].avatar = client.avatar;
+          if (room.phase === 'playing' && room.game) broadcast(room);
+          else lobbyBroadcast(room);
+        }
+      }
+      return;
+    }
+
     if (m.type === 'create') {
       if (client.roomCode) return;
+      if (m.name && typeof m.name === 'string') client.name = m.name.trim().slice(0, 16);
+      if (m.avatar && typeof m.avatar === 'string') client.avatar = m.avatar.slice(0, 4);
       if (ROOMS.size > 500) return send(ws, { type: 'error', msg: 'الخوادم ممتلئة — حاول لاحقاً' });
       const room = createRoom(client.pid, client.name, client.avatar, m.theme);
       const slot = room.seats[0];
@@ -556,6 +576,8 @@ wss.on('connection', (ws) => {
 
     if (m.type === 'join') {
       if (client.roomCode) return;
+      if (m.name && typeof m.name === 'string') client.name = m.name.trim().slice(0, 16);
+      if (m.avatar && typeof m.avatar === 'string') client.avatar = m.avatar.slice(0, 4);
       const room = ROOMS.get(String(m.code || '').toUpperCase());
       if (!room) return send(ws, { type: 'error', msg: 'لا توجد طاولة بهذا الكود' });
       if (room.phase !== 'lobby') return send(ws, { type: 'error', msg: 'الطاولة بدأت بالفعل' });
@@ -572,6 +594,8 @@ wss.on('connection', (ws) => {
 
     if (m.type === 'quick') {
       if (client.roomCode) return;
+      if (m.name && typeof m.name === 'string') client.name = m.name.trim().slice(0, 16);
+      if (m.avatar && typeof m.avatar === 'string') client.avatar = m.avatar.slice(0, 4);
       let room = [...ROOMS.values()].find((r) => r.phase === 'lobby' && findFreeSeat(r) >= 0);
       if (!room) {
         room = createRoom(client.pid, client.name, client.avatar, m.theme);
