@@ -8,7 +8,7 @@
       <!-- Quick Play Button (Primary Hero CTA) -->
       <button
         class="shimmer-btn w-full p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-amber-600 via-orange-500 to-red-600 text-white shadow-xl shadow-orange-500/25 border-2 border-yellow-300/60 flex items-center justify-between transition-transform hover:scale-102 active:scale-98"
-        @click="game.quickPlay"
+        @click="game.quickPlay()"
       >
         <div class="flex flex-col text-right">
           <b class="text-xl sm:text-2xl font-black">لعب سريع ⚡</b>
@@ -22,7 +22,7 @@
         <!-- Create Custom Room -->
         <button
           class="w-full p-3.5 rounded-2xl bg-gradient-to-br from-emerald-800/90 to-emerald-950 border border-emerald-400/40 text-white shadow-md hover:scale-102 active:scale-98 transition-transform flex items-center justify-center gap-2"
-          @click="game.createRoom"
+          @click="game.createRoom()"
         >
           <span class="text-2xl">🏛️</span>
           <div class="flex flex-col text-right">
@@ -72,8 +72,8 @@
       </div>
     </div>
 
-    <!-- Quick Atmosphere / Theme Selector Bar (100% Real & Working) -->
-    <div class="w-full max-w-lg mt-5 p-4 rounded-3xl bg-black/60 backdrop-blur-md border border-amber-500/30 text-right select-none">
+    <!-- Quick Atmosphere / Theme Selector Bar (Single Source of Truth) -->
+    <div class="w-full max-w-lg mt-4 p-4 rounded-3xl bg-black/60 backdrop-blur-md border border-amber-500/30 text-right select-none">
       <div class="flex items-center justify-between mb-3">
         <b class="text-sm font-black text-gold-light flex items-center gap-1.5">
           <span>🎨</span>
@@ -96,8 +96,37 @@
       </div>
     </div>
 
+    <!-- Interactive Features Hub (100% Real & Connected) -->
+    <div class="w-full max-w-lg mt-3 grid grid-cols-2 gap-2.5 select-none">
+      <!-- Luxury Card Decks Selector (Directly changes cards in game) -->
+      <button
+        class="p-3.5 rounded-2xl bg-black/50 border border-white/15 hover:border-amber-400/50 transition-transform hover:scale-102 active:scale-98 flex items-center gap-3 text-right"
+        @click="ui.openModal('cardEffects')"
+      >
+        <div class="w-9 h-12 rounded-[4px] overflow-hidden shadow shrink-0">
+          <GameCard :back="true" />
+        </div>
+        <div class="flex flex-col">
+          <b class="text-xs font-black text-white">✨ أطقم الورق</b>
+          <span class="text-[10px] text-amber-300 font-bold mt-0.5">{{ currentDeckName }}</span>
+        </div>
+      </button>
+
+      <!-- Diwaniya AI Personalities (Instant Challenge against Bots) -->
+      <button
+        class="p-3.5 rounded-2xl bg-black/50 border border-white/15 hover:border-emerald-400/50 transition-transform hover:scale-102 active:scale-98 flex items-center gap-3 text-right"
+        @click="ui.openModal('aiPersons')"
+      >
+        <span class="text-3xl shrink-0">🧠</span>
+        <div class="flex flex-col">
+          <b class="text-xs font-black text-white">شخصيات الديوانية</b>
+          <span class="text-[10px] text-emerald-300 font-medium mt-0.5">6 خصوم ذكاء اصطناعي</span>
+        </div>
+      </button>
+    </div>
+
     <!-- How to Play Quick Guide (قواعد اللعبة التفاعلية) -->
-    <div class="w-full max-w-lg mt-4 p-4 sm:p-5 rounded-3xl bg-black/50 backdrop-blur-md border border-white/10 text-right select-none">
+    <div class="w-full max-w-lg mt-3.5 p-4 sm:p-5 rounded-3xl bg-black/50 backdrop-blur-md border border-white/10 text-right select-none">
       <h3 class="text-sm font-black text-white mb-3 flex items-center justify-between">
         <span class="flex items-center gap-2">
           <span>📜</span>
@@ -155,12 +184,12 @@
     </div>
 
     <!-- Account / Guest Profile Section -->
-    <div id="account-section" class="w-full max-w-lg mt-4 flex flex-col items-center">
+    <div id="account-section" class="w-full max-w-lg mt-3.5 flex flex-col items-center">
       <HomeAccountCard v-if="auth.account" />
       <HomeAuthBox v-else />
 
       <!-- Guest Fields & Avatar Picker -->
-      <div v-if="!auth.account" class="w-full mt-3 p-4 rounded-3xl bg-black/40 border border-white/10 flex flex-col gap-3 text-right">
+      <div v-if="!auth.account" class="w-full mt-2.5 p-4 rounded-3xl bg-black/40 border border-white/10 flex flex-col gap-3 text-right">
         <label class="text-xs font-bold text-gray-300">اسمك وصورتك الرمزية كضيف:</label>
         <input
           :value="auth.guestName"
@@ -186,7 +215,7 @@
       </div>
     </div>
 
-    <!-- Bottom Navigation Bar (3 Real, Functional Tabs) -->
+    <!-- Bottom Navigation Bar (4 Real, Functional Tabs) -->
     <nav class="fixed bottom-0 inset-x-0 z-40 h-15 bg-black/95 backdrop-blur-xl border-t border-white/15 flex items-center justify-around px-4 max-w-lg mx-auto shadow-2xl select-none">
       <button
         class="flex flex-col items-center justify-center flex-1 py-1 transition-all"
@@ -195,6 +224,15 @@
       >
         <span class="text-lg">🂡</span>
         <span class="text-[11px] font-bold">الرئيسية</span>
+      </button>
+
+      <button
+        class="flex flex-col items-center justify-center flex-1 py-1 transition-all"
+        :class="ui.activeTab === 'store' ? 'text-amber-400 font-black scale-105' : 'text-gray-400 hover:text-white'"
+        @click="ui.openModal('store')"
+      >
+        <span class="text-lg">🛍️</span>
+        <span class="text-[11px] font-bold">المتجر</span>
       </button>
 
       <button
@@ -241,6 +279,15 @@ const themes = [
 const currentThemeName = computed(() => {
   const t = themes.find(x => x.id === ui.theme)
   return t ? `${t.icon} مجلس ${t.name}` : '🏛️ مجلس نجد'
+})
+
+const currentDeckName = computed(() => {
+  switch (ui.activeDeck) {
+    case 'emerald': return 'الزمرد والسدو'
+    case 'heritage': return 'سيف ونخلة'
+    case 'royal': return 'الكحلي الملكي'
+    default: return 'الذهب الخالص'
+  }
 })
 
 function selectTheme(id: number) {

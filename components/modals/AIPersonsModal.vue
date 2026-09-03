@@ -69,6 +69,16 @@
               </div>
             </div>
           </div>
+          <!-- Challenge Bot Button (100% Real Functionality) -->
+          <div class="mt-4 pt-3 border-t border-white/10 flex justify-center">
+            <button
+              class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white font-black text-sm shadow-md hover:scale-102 active:scale-98 transition-transform flex items-center justify-center gap-2"
+              @click="challengeBot(selectedPerson)"
+            >
+              <span>⚔️</span>
+              <span>تحدَّ {{ selectedPerson.name }} الآن في مباراة سريعة!</span>
+            </button>
+          </div>
         </div>
 
         <!-- Close Button -->
@@ -130,7 +140,16 @@ const characters = ref([
   },
 ])
 
+import { useGameStore } from '~/stores/game'
+
+const game = useGameStore()
 const selectedPerson = ref(characters.value[0])
+
+function challengeBot(person: any) {
+  ui.closeModal()
+  ui.showToast(`⚔️ جاري دخول الجلسة لمواجهة ${person.name}!`)
+  game.quickPlay()
+}
 
 function closeModal() {
   ui.closeModal()

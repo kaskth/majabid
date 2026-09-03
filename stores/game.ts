@@ -375,14 +375,14 @@ export const useGameStore = defineStore('game', () => {
   }
 
   // Actions
-  function quickPlay() {
+  function quickPlay(preferredTheme?: number) {
     audio.sfx.ui()
-    send({ type: 'quick' })
+    send({ type: 'quick', theme: preferredTheme || ui.theme })
   }
 
-  function createRoom() {
+  function createRoom(preferredTheme?: number) {
     audio.sfx.ui()
-    send({ type: 'create' })
+    send({ type: 'create', theme: preferredTheme || ui.theme })
   }
 
   function joinRoom(code: string) {
@@ -402,6 +402,7 @@ export const useGameStore = defineStore('game', () => {
 
   function updateLobbyConfig(cfg: Partial<LobbyConfig>) {
     audio.sfx.ui()
+    if (cfg.theme) ui.setTheme(cfg.theme)
     send({ type: 'config', ...cfg })
   }
 

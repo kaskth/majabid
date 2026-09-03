@@ -102,12 +102,13 @@ function findFreeSeat(room) {
   return -1;
 }
 
-function createRoom(hostPid, name, avatar) {
+function createRoom(hostPid, name, avatar, theme = 1) {
   const code = genCode();
+  const validTheme = Math.min(4, Math.max(1, Number(theme) || 1));
   const room = {
     code, phase: 'lobby', seats: emptySeats(),
     specs: [],                 // المشاهدون (بث الجلسات)
-    config: { mode: 'teams', target: 0, theme: 1, difficulty: 'pro' },
+    config: { mode: 'teams', target: 0, theme: validTheme, difficulty: 'pro' },
     game: null, events: [], nextEvSeq: 1,
     stopDeadline: null, actionDeadline: null,
     windowId: 0, finalSteal: null, t0: Date.now(),
@@ -544,7 +545,7 @@ wss.on('connection', (ws) => {
     if (m.type === 'create') {
       if (client.roomCode) return;
       if (ROOMS.size > 500) return send(ws, { type: 'error', msg: 'الخوادم ممتلئة — حاول لاحقاً' });
-      const room = createRoom(client.pid, client.name, client.avatar);
+      const room = createRoom(client.pid, client.name, client.avatar, m.theme);
       const slot = room.seats[0];
       slot.ws = ws; slot.connected = true; slot.lastSeq = 0;
       client.roomCode = room.code; client.seat = 0;
@@ -572,7 +573,11 @@ wss.on('connection', (ws) => {
     if (m.type === 'quick') {
       if (client.roomCode) return;
       let room = [...ROOMS.values()].find((r) => r.phase === 'lobby' && findFreeSeat(r) >= 0);
-      if (!room) room = createRoom(client.pid, client.name, client.avatar);
+      if (!room) {
+        room = createRoom(client.pid, client.name, client.avatar, m.theme);
+      } else if (m.theme) {
+        room.config.theme = Math.min(4, Math.max(1, Number(m.theme) || 1));
+      }
       const idx = findFreeSeat(room);
       const slot = mkPlayer(client.pid, client.name, client.avatar);
       slot.ws = ws; slot.connected = true;
@@ -623,12 +628,17 @@ wss.on('connection', (ws) => {
 
     if (m.type === 'config') {
       const room = ROOMS.get(client.roomCode);
-      if (!room || room.phase !== 'lobby' || client.seat < 0) return;
-      if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
-      if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
-      if ([1, 2, 3, 4].includes(+m.theme)) room.config.theme = +m.theme;
-      if (['casual', 'pro', 'legend'].includes(m.difficulty)) room.config.difficulty = m.difficulty;
-      lobbyBroadcast(room);
+      if (!room || client.seat < 0) return;
+      if (room.phase === 'lobby') {
+        if (['teams', 'ffa'].includes(m.mode)) room.config.mode = m.mode;
+        if ([0, 500, 1000, 2000].includes(+m.target)) room.config.target = +m.target;
+        if (['casual', 'pro', 'legend'].includes(m.difficulty)) room.config.difficulty = m.difficulty;
+      }
+      if ([1, 2, 3, 4].includes(+m.theme)) {
+        room.config.theme = +m.theme;
+        if (room.phase === 'playing') broadcast(room);
+      }
+      if (room.phase === 'lobby') lobbyBroadcast(room);
       return;
     }
 

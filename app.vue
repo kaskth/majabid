@@ -48,6 +48,10 @@ onMounted(() => {
     if (themeParam) {
       ui.setTheme(parseInt(themeParam, 10))
     }
+    const deckParam = params.get('deck')
+    if (deckParam && ['gold', 'emerald', 'heritage', 'royal'].includes(deckParam)) {
+      ui.setDeck(deckParam as any)
+    }
     const roomParam = params.get('room')
     if (roomParam) {
       setTimeout(() => game.joinRoom(roomParam), 600)

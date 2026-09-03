@@ -57,7 +57,7 @@
         <button
           class="px-2 py-1 rounded-full bg-amber-500/20 hover:bg-amber-500/35 text-amber-300 border border-amber-400/40 text-[11px] font-bold transition-transform active:scale-95 flex items-center gap-1"
           title="تبديل البيئة"
-          @click="ui.cycleTheme"
+          @click="onCycleTheme"
         >
           <span>🎨</span>
           <span class="hidden md:inline">{{ currentThemeName }}</span>
@@ -163,32 +163,47 @@
         </div>
       </div>
 
-      <!-- 3. LIVE ACTION PLAY-BY-PLAY BANNER (Under Table) -->
-      <Transition
-        enter-active-class="transition duration-300 ease-out transform"
-        enter-from-class="opacity-0 -translate-y-2 scale-95"
-        enter-to-class="opacity-100 translate-y-0 scale-100"
-        leave-active-class="transition duration-200 ease-in transform"
-        leave-from-class="opacity-100 scale-100"
-        leave-to-class="opacity-0 -translate-y-2 scale-95"
-      >
-        <div
-          v-if="game.lastActionAnnouncement"
-          :key="game.lastActionAnnouncement.time"
-          class="my-1 px-3.5 py-1 rounded-full bg-black/90 border border-amber-400/50 text-amber-200 text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-1.5 z-20 select-none animate-pulse"
+      <!-- 3. FIXED TACTICAL STATUS RIBBON (Guarantees ZERO Layout Shift - Table never moves!) -->
+      <div class="w-full max-w-md mx-auto h-7 sm:h-8 shrink-0 flex items-center justify-center px-1 my-0.5 z-20 overflow-hidden pointer-events-none select-none">
+        <Transition
+          enter-active-class="transition duration-200 ease-out"
+          enter-from-class="opacity-0 scale-95"
+          enter-to-class="opacity-100 scale-100"
+          leave-active-class="transition duration-150 ease-in"
+          leave-from-class="opacity-100 scale-100"
+          leave-to-class="opacity-0 scale-95"
+          mode="out-in"
         >
-          <span>📢</span>
-          <span>{{ game.lastActionAnnouncement.text }}</span>
-        </div>
-      </Transition>
+          <!-- State A: It's My Turn -->
+          <div
+            v-if="game.isMyTurn && game.phase === 'acting'"
+            key="my-turn"
+            class="px-3 sm:px-4 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-black text-[11px] sm:text-xs shadow-gold-glow flex items-center gap-1.5 animate-bounce"
+          >
+            <span>⚡</span>
+            <span>{{ game.myOptions.mustEat ? '⚠️ لديك أكلة إجبارية! اختر ورقة للأكل' : 'دورك الآن! اختر ورقة أو انقر عليها مرتين للعب' }}</span>
+          </div>
 
-      <!-- TURN NOTIFICATION BANNER (When it's my turn) -->
-      <div
-        v-if="game.isMyTurn && game.phase === 'acting'"
-        class="my-0.5 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-black text-xs shadow-gold-glow animate-bounce z-20 select-none flex items-center gap-1.5"
-      >
-        <span>⚡</span>
-        <span>{{ game.myOptions.mustEat ? '⚠️ لديك أكلة إجبارية! اختر ورقة للأكل' : 'دورك الآن! اختر ورقة أو انقر عليها مرتين للعب' }}</span>
+          <!-- State B: Recent Action Announcement -->
+          <div
+            v-else-if="game.lastActionAnnouncement"
+            :key="game.lastActionAnnouncement.time"
+            class="px-3 sm:px-3.5 py-0.5 sm:py-1 rounded-full bg-black/90 border border-amber-400/50 text-amber-200 text-[11px] sm:text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-1.5"
+          >
+            <span>📢</span>
+            <span class="truncate max-w-[280px] sm:max-w-xs">{{ game.lastActionAnnouncement.text }}</span>
+          </div>
+
+          <!-- State C: Ambient Round Status (Maintains Exact Reserved Height) -->
+          <div
+            v-else
+            key="idle"
+            class="px-3 py-0.5 rounded-full bg-black/40 border border-white/10 text-gray-400 text-[10px] font-medium flex items-center gap-1.5"
+          >
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+            <span>طاولة مجابيد • الجولة {{ game.round }} جارية</span>
+          </div>
+        </Transition>
       </div>
     </div>
 
@@ -352,6 +367,13 @@ const currentThemeName = computed(() => {
     default: return 'نجد 🏛️'
   }
 })
+
+function onCycleTheme() {
+  const next = ui.cycleTheme()
+  if (game.roomCode) {
+    game.updateLobbyConfig({ theme: next })
+  }
+}
 
 const turnSpotlightClass = computed(() => {
   if (game.turn === bottomSeatIndex.value) {

@@ -1,75 +1,135 @@
 <template>
   <div
-    class="relative select-none aspect-[100/140] rounded-xl overflow-hidden cursor-pointer transition-all duration-200 transform-gpu"
+    class="relative select-none aspect-[100/140] rounded-[5px] sm:rounded-[7px] overflow-hidden cursor-pointer transition-all duration-200 transform-gpu"
     :class="[
-      isSelected ? '-translate-y-3 scale-105 ring-4 ring-amber-400 shadow-[0_12px_28px_rgba(245,197,66,0.6)] z-30' : '',
-      isPlayable && !isSelected ? 'ring-2 ring-emerald-400 shadow-[0_0_14px_rgba(52,211,153,0.5)] hover:-translate-y-1.5' : '',
+      isSelected ? '-translate-y-3 scale-105 ring-3 ring-amber-400 shadow-[0_10px_25px_rgba(245,197,66,0.6)] z-30' : '',
+      isPlayable && !isSelected ? 'ring-2 ring-emerald-400 shadow-[0_0_12px_rgba(52,211,153,0.55)] hover:-translate-y-1.5' : '',
       isDimmed ? 'opacity-40 grayscale-[50%] pointer-events-none' : '',
     ]"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
   >
-    <!-- Card Back -->
+    <!-- ============================================================ -->
+    <!-- 1. CARD BACK (4 REAL LUXURY DECKS BASED ON ui.activeDeck)    -->
+    <!-- ============================================================ -->
     <svg
       v-if="back"
       viewBox="0 0 100 140"
-      class="w-full h-full block rounded-xl shadow-md"
+      class="w-full h-full block rounded-[5px] sm:rounded-[7px] shadow-md"
     >
       <defs>
-        <linearGradient id="backBg" x1="0" y1="0" x2="1" y2="1">
+        <!-- Deck 1: Gold Solid (Classic Majlis Emerald & Gold) -->
+        <linearGradient id="backBg-gold" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="#0a2a1a" />
           <stop offset="50%" stop-color="#05170e" />
           <stop offset="100%" stop-color="#020b07" />
         </linearGradient>
-        <linearGradient id="backGold" x1="0" y1="0" x2="1" y2="1">
+        <linearGradient id="backGold-gold" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0%" stop-color="#ffe6a3" />
           <stop offset="50%" stop-color="#d4af37" />
           <stop offset="100%" stop-color="#997a15" />
         </linearGradient>
-        <pattern id="backGrid" width="10" height="10" patternUnits="userSpaceOnUse">
-          <path d="M0 5 L5 0 L10 5 L5 10 Z" fill="none" stroke="#d4af37" stroke-width="0.35" opacity="0.25" />
+
+        <!-- Deck 2: Emerald Royal (Jade & Mint Sadu) -->
+        <linearGradient id="backBg-emerald" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#064e3b" />
+          <stop offset="50%" stop-color="#022c22" />
+          <stop offset="100%" stop-color="#011611" />
+        </linearGradient>
+        <linearGradient id="backGold-emerald" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#6ee7b7" />
+          <stop offset="50%" stop-color="#10b981" />
+          <stop offset="100%" stop-color="#047857" />
+        </linearGradient>
+
+        <!-- Deck 3: Heritage Crimson (Najd Red Velvet & Antique Gold) -->
+        <linearGradient id="backBg-heritage" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#450a0a" />
+          <stop offset="50%" stop-color="#260404" />
+          <stop offset="100%" stop-color="#120202" />
+        </linearGradient>
+        <linearGradient id="backGold-heritage" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#fde047" />
+          <stop offset="50%" stop-color="#ca8a04" />
+          <stop offset="100%" stop-color="#854d0e" />
+        </linearGradient>
+
+        <!-- Deck 4: Royal Midnight (Sapphire & Starlight) -->
+        <linearGradient id="backBg-royal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#1e1b4b" />
+          <stop offset="50%" stop-color="#0f172a" />
+          <stop offset="100%" stop-color="#020617" />
+        </linearGradient>
+        <linearGradient id="backGold-royal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#93c5fd" />
+          <stop offset="50%" stop-color="#38bdf8" />
+          <stop offset="100%" stop-color="#1d4ed8" />
+        </linearGradient>
+
+        <!-- Geometric Grid Pattern -->
+        <pattern id="backGrid" width="8" height="8" patternUnits="userSpaceOnUse">
+          <path d="M0 4 L4 0 L8 4 L4 8 Z" fill="none" :stroke="deckStrokeColor" stroke-width="0.3" opacity="0.25" />
         </pattern>
       </defs>
-      <!-- Base & Outer border -->
-      <rect x="1.5" y="1.5" width="97" height="137" rx="9" fill="url(#backBg)" stroke="url(#backGold)" stroke-width="2.5" />
-      <rect x="5.5" y="5.5" width="89" height="129" rx="7" fill="url(#backBg)" stroke="#d4af37" stroke-width="0.8" opacity="0.6" />
-      <rect x="7" y="7" width="86" height="126" rx="5" fill="url(#backGrid)" />
+
+      <!-- Base & Outer border (Refined Casino Radius rx="4") -->
+      <rect x="1.5" y="1.5" width="97" height="137" rx="4" :fill="`url(#backBg-${deckThemeKey})`" :stroke="`url(#backGold-${deckThemeKey})`" stroke-width="2.2" />
+      <rect x="4.5" y="4.5" width="91" height="131" rx="2.5" :fill="`url(#backBg-${deckThemeKey})`" :stroke="deckStrokeColor" stroke-width="0.7" opacity="0.55" />
+      <rect x="6" y="6" width="88" height="128" rx="2" fill="url(#backGrid)" />
       
-      <!-- Corner floral ornaments -->
-      <g stroke="url(#backGold)" stroke-width="0.8" fill="none" opacity="0.7">
-        <path d="M10 16 Q16 16 16 10" />
-        <path d="M90 16 Q84 16 84 10" />
-        <path d="M10 124 Q16 124 16 130" />
-        <path d="M90 124 Q84 124 84 130" />
+      <!-- Corner Ornaments -->
+      <g :stroke="`url(#backGold-${deckThemeKey})`" stroke-width="0.7" fill="none" opacity="0.7">
+        <path d="M9 14 Q14 14 14 9" />
+        <path d="M91 14 Q86 14 86 9" />
+        <path d="M9 126 Q14 126 14 131" />
+        <path d="M91 126 Q86 126 86 131" />
       </g>
 
-      <!-- Center Medallion (Islamic Star & Rosette) -->
+      <!-- Center Medallion (Theme Specific) -->
       <g transform="translate(50, 70)">
-        <!-- Outer glow circle -->
-        <circle cx="0" cy="0" r="22" fill="#0c3521" stroke="url(#backGold)" stroke-width="1.2" />
-        <circle cx="0" cy="0" r="18" fill="none" stroke="url(#backGold)" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.8" />
-        <!-- 8-pointed star -->
-        <path
-          d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z"
-          fill="url(#backGold)"
-          opacity="0.9"
-        />
-        <path
-          d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z"
-          fill="url(#backGold)"
-          transform="rotate(45)"
-          opacity="0.7"
-        />
-        <circle cx="0" cy="0" r="4.5" fill="#04150b" stroke="url(#backGold)" stroke-width="0.8" />
-        <circle cx="0" cy="0" r="2" fill="#ffe6a3" />
+        <circle cx="0" cy="0" r="22" :fill="deckCenterBg" :stroke="`url(#backGold-${deckThemeKey})`" stroke-width="1.2" />
+        <circle cx="0" cy="0" r="18" fill="none" :stroke="`url(#backGold-${deckThemeKey})`" stroke-width="0.6" stroke-dasharray="2,2" opacity="0.8" />
+
+        <!-- 1. Gold Deck: 8-pointed Islamic Star -->
+        <template v-if="deckThemeKey === 'gold'">
+          <path d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z" fill="url(#backGold-gold)" opacity="0.9" />
+          <path d="M0 -15 L4 -4 L15 0 L4 4 L0 15 L-4 4 L-15 0 L-4 -4 Z" fill="url(#backGold-gold)" transform="rotate(45)" opacity="0.7" />
+          <circle cx="0" cy="0" r="4.5" fill="#04150b" stroke="url(#backGold-gold)" stroke-width="0.8" />
+          <circle cx="0" cy="0" r="2" fill="#ffe6a3" />
+        </template>
+
+        <!-- 2. Emerald Deck: Sadu Diamond Crest -->
+        <template v-else-if="deckThemeKey === 'emerald'">
+          <polygon points="0,-16 14,0 0,16 -14,0" fill="url(#backGold-emerald)" opacity="0.85" />
+          <polygon points="0,-10 9,0 0,10 -9,0" fill="#022c22" stroke="url(#backGold-emerald)" stroke-width="0.8" />
+          <circle cx="0" cy="0" r="3" fill="#a7f3d0" />
+        </template>
+
+        <!-- 3. Heritage Deck: Crossed Swords & Palm Tree -->
+        <template v-else-if="deckThemeKey === 'heritage'">
+          <!-- Crossed Swords -->
+          <line x1="-12" y1="-12" x2="12" y2="12" stroke="url(#backGold-heritage)" stroke-width="1.8" stroke-linecap="round" />
+          <line x1="12" y1="-12" x2="-12" y2="12" stroke="url(#backGold-heritage)" stroke-width="1.8" stroke-linecap="round" />
+          <!-- Palm Tree Center -->
+          <circle cx="0" cy="0" r="6" fill="#120202" stroke="url(#backGold-heritage)" stroke-width="1" />
+          <circle cx="0" cy="0" r="2.5" fill="#fef08a" />
+        </template>
+
+        <!-- 4. Royal Deck: Royal Crown & Starlight -->
+        <template v-else>
+          <path d="M-10 6 L-8 -6 L-3 -1 L0 -9 L3 -1 L8 -6 L10 6 Z" fill="url(#backGold-royal)" stroke="#38bdf8" stroke-width="0.8" />
+          <circle cx="0" cy="11" r="2" fill="#e0f2fe" />
+        </template>
       </g>
     </svg>
 
-    <!-- Golden Joker Card -->
+    <!-- ============================================================ -->
+    <!-- 2. GOLDEN JOKER CARD                                         -->
+    <!-- ============================================================ -->
     <svg
       v-else-if="joker"
       viewBox="0 0 100 140"
-      class="w-full h-full block rounded-xl shadow-md"
+      class="w-full h-full block rounded-[5px] sm:rounded-[7px] shadow-md"
     >
       <defs>
         <linearGradient id="jokerBg" x1="0" y1="0" x2="1" y2="1">
@@ -84,18 +144,18 @@
           <stop offset="100%" stop-color="#663b00" />
         </linearGradient>
       </defs>
-      <!-- Base -->
-      <rect x="1.5" y="1.5" width="97" height="137" rx="9" fill="url(#jokerBg)" stroke="url(#jokerFrame)" stroke-width="2.6" />
-      <rect x="5.5" y="5.5" width="89" height="129" rx="7" fill="none" stroke="#ffffff" stroke-width="1.2" opacity="0.6" />
-      <rect x="7" y="7" width="86" height="126" rx="5.5" fill="none" stroke="#8a5300" stroke-width="0.8" opacity="0.4" />
+      <!-- Base (Refined Casino Radius rx="4") -->
+      <rect x="1.5" y="1.5" width="97" height="137" rx="4" fill="url(#jokerBg)" stroke="url(#jokerFrame)" stroke-width="2.4" />
+      <rect x="4.5" y="4.5" width="91" height="131" rx="2.5" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.6" />
+      <rect x="6" y="6" width="88" height="128" rx="2" fill="none" stroke="#8a5300" stroke-width="0.6" opacity="0.35" />
 
       <!-- Corner Stars & Labels -->
-      <text x="11" y="19" font-size="11" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">★</text>
-      <text x="11" y="30" font-size="8" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">J</text>
+      <text x="10" y="18" font-size="11" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">★</text>
+      <text x="10" y="29" font-size="8" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">J</text>
       
       <g transform="rotate(180 50 70)">
-        <text x="11" y="19" font-size="11" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">★</text>
-        <text x="11" y="30" font-size="8" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">J</text>
+        <text x="10" y="18" font-size="11" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">★</text>
+        <text x="10" y="29" font-size="8" font-weight="900" font-family="sans-serif" fill="#7a4800" text-anchor="middle">J</text>
       </g>
 
       <!-- Center Joker Crest / Crowned Falcon -->
@@ -116,17 +176,19 @@
 
       <!-- Gold Banner "JOKER" -->
       <g transform="translate(50, 108)">
-        <rect x="-34" y="-8" width="68" height="16" rx="4" fill="#8a4f00" stroke="#ffd700" stroke-width="1.2" />
+        <rect x="-34" y="-8" width="68" height="16" rx="3" fill="#8a4f00" stroke="#ffd700" stroke-width="1.2" />
         <text x="0" y="3" font-size="10" font-weight="900" font-family="sans-serif" fill="#fff3c4" text-anchor="middle" letter-spacing="1.5">JOKER</text>
       </g>
       <text x="50" y="125" font-size="8" font-weight="bold" font-family="sans-serif" fill="#7a4800" text-anchor="middle">جوكر مجابيد</text>
     </svg>
 
-    <!-- Regular Playing Card (A, 2-10, J, Q, K) -->
+    <!-- ============================================================ -->
+    <!-- 3. REGULAR PLAYING CARD (A, 2-10, J, Q, K)                  -->
+    <!-- ============================================================ -->
     <svg
       v-else
       viewBox="0 0 100 140"
-      class="w-full h-full block rounded-xl shadow-md bg-[#faf8f5]"
+      class="w-full h-full block rounded-[5px] sm:rounded-[7px] shadow-md bg-[#faf8f5]"
     >
       <defs>
         <!-- Heart Path -->
@@ -147,9 +209,9 @@
         </g>
       </defs>
 
-      <!-- Card Base and Border -->
-      <rect x="1.5" y="1.5" width="97" height="137" rx="9" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.8" />
-      <rect x="4.5" y="4.5" width="91" height="131" rx="7" fill="none" stroke="#f1f5f9" stroke-width="1" />
+      <!-- Card Base and Border (Refined Casino Radius rx="4") -->
+      <rect x="1.5" y="1.5" width="97" height="137" rx="4" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.6" />
+      <rect x="4.5" y="4.5" width="91" height="131" rx="2.5" fill="none" stroke="#f1f5f9" stroke-width="0.8" />
 
       <!-- Top-Left Corner Index (Rank + Small Suit) -->
       <g transform="translate(10, 16)">
@@ -187,87 +249,81 @@
         </g>
       </g>
 
-      <!-- Center Area by Card Type -->
+      <!-- Royal Face Card Art (J, Q, K) -->
+      <g v-if="['J', 'Q', 'K'].includes(rank)" transform="translate(50, 70)">
+        <!-- Outer ornate portrait frame -->
+        <rect x="-30" y="-45" width="60" height="90" rx="3" fill="#faf5eb" stroke="#cbd5e1" stroke-width="1.2" />
+        <rect x="-27" y="-42" width="54" height="84" rx="2" fill="none" stroke="#e2e8f0" stroke-width="0.6" stroke-dasharray="2,2" />
 
-      <!-- 1) ACE: Big Central Ornamental Pip -->
-      <g v-if="rank === 'A'" transform="translate(50, 70)">
-        <!-- Subtle back ring -->
-        <circle cx="0" cy="2" r="23" fill="none" :stroke="cardColor" stroke-width="0.8" opacity="0.18" />
-        <g transform="scale(2.4)">
-          <use :href="suitHref" />
-        </g>
-      </g>
+        <!-- Jack: The Knight/Warrior -->
+        <template v-if="rank === 'J'">
+          <circle cx="0" cy="-14" r="14" fill="#fed7aa" stroke="#c2410c" stroke-width="1" />
+          <path d="M-14 -16 L-10 -26 L10 -26 L14 -16 Z" fill="#b91c1c" stroke="#7f1d1d" stroke-width="1" />
+          <!-- Face features -->
+          <circle cx="-4" cy="-15" r="1.5" fill="#1e293b" />
+          <circle cx="4" cy="-15" r="1.5" fill="#1e293b" />
+          <path d="M-5 -8 Q0 -5 5 -8" stroke="#c2410c" stroke-width="1.2" fill="none" />
+          <!-- Armor and Halberd -->
+          <path d="M-18 28 L-14 0 L14 0 L18 28 Z" fill="#1e3a8a" stroke="#cbd5e1" stroke-width="1" />
+          <line x1="16" y1="-32" x2="16" y2="35" stroke="#78350f" stroke-width="2" />
+          <polygon points="13,-32 16,-40 19,-32" fill="#94a3b8" />
+        </template>
 
-      <!-- 2) COURT CARDS (J, Q, K): Royal Portraits -->
-      <g v-else-if="['J', 'Q', 'K'].includes(rank)" transform="translate(50, 70)">
-        <!-- Portrait Box Frame -->
-        <rect x="-27" y="-42" width="54" height="84" rx="6" fill="#fcfbf7" :stroke="cardColor" stroke-width="1.2" opacity="0.9" />
-        <rect x="-24" y="-39" width="48" height="78" rx="4" fill="none" stroke="#d4af37" stroke-width="0.7" opacity="0.6" />
-
-        <!-- Royal Silhouette & Clothing -->
-        <g v-if="rank === 'K'">
-          <!-- King (الشايب) -->
-          <circle cx="0" cy="-12" r="14" fill="#fde68a" stroke="#d4af37" stroke-width="1" />
+        <!-- Queen: The Monarch -->
+        <template v-else-if="rank === 'Q'">
+          <circle cx="0" cy="-14" r="14" fill="#fbcfe8" stroke="#be185d" stroke-width="1" />
           <!-- Royal Crown -->
-          <path d="M-11 -23 L-8 -31 L-2 -26 L0 -33 L2 -26 L8 -31 L11 -23 Z" fill="#d4af37" stroke="#854d0e" stroke-width="0.8" />
-          <circle cx="0" cy="-33" r="1.5" fill="#ef4444" />
-          <!-- Beard -->
-          <path d="M-8 -6 C-8 6 -3 10 0 10 C3 10 8 6 8 -6 Z" fill="#475569" />
-          <!-- Eyes & Moustache -->
-          <circle cx="-3" cy="-14" r="1" fill="#0f172a" />
-          <circle cx="3" cy="-14" r="1" fill="#0f172a" />
-          <path d="M-5 -9 Q0 -7 5 -9" stroke="#0f172a" stroke-width="1" fill="none" />
-          <!-- Robe / Sceptre -->
-          <path d="M-20 36 L-15 10 L15 10 L20 36 Z" :fill="isRed ? '#b91c1c' : '#1e3a8a'" />
-          <path d="M0 10 L0 36" stroke="#d4af37" stroke-width="2" />
-          <text x="0" y="27" font-size="12" text-anchor="middle">👑</text>
-        </g>
+          <path d="M-12 -20 L-10 -28 L-4 -22 L0 -30 L4 -22 L10 -28 L12 -20 Z" fill="#eab308" stroke="#a16207" stroke-width="1" />
+          <circle cx="-10" cy="-28" r="1.2" fill="#dc2626" />
+          <circle cx="0" cy="-30" r="1.5" fill="#2563eb" />
+          <circle cx="10" cy="-28" r="1.2" fill="#dc2626" />
+          <!-- Queen Face -->
+          <circle cx="-4" cy="-15" r="1.5" fill="#1e293b" />
+          <circle cx="4" cy="-15" r="1.5" fill="#1e293b" />
+          <path d="M-4 -8 Q0 -6 4 -8" stroke="#be185d" stroke-width="1.2" fill="none" />
+          <!-- Robe with Scepter -->
+          <path d="M-18 28 L-14 0 L14 0 L18 28 Z" fill="#701a75" stroke="#f472b6" stroke-width="1" />
+          <line x1="-15" y1="-10" x2="-15" y2="32" stroke="#eab308" stroke-width="1.8" />
+          <circle cx="-15" cy="-12" r="3" fill="#eab308" />
+        </template>
 
-        <g v-else-if="rank === 'Q'">
-          <!-- Queen (البنت) -->
-          <circle cx="0" cy="-12" r="13" fill="#fef08a" stroke="#d4af37" stroke-width="1" />
-          <!-- Queen Tiara -->
-          <path d="M-9 -21 Q0 -28 9 -21 L0 -24 Z" fill="#d4af37" stroke="#854d0e" stroke-width="0.8" />
-          <circle cx="0" cy="-26" r="1.5" fill="#3b82f6" />
-          <!-- Eyes & Smile -->
-          <circle cx="-3.5" cy="-13" r="1" fill="#0f172a" />
-          <circle cx="3.5" cy="-13" r="1" fill="#0f172a" />
-          <path d="M-3 -8 Q0 -6 3 -8" stroke="#dc2626" stroke-width="1" fill="none" />
-          <!-- Hijazi / Royal Veil -->
-          <path d="M-10 -18 Q-16 -5 -12 12 L12 12 Q16 -5 10 -18 Z" fill="none" stroke="#d4af37" stroke-width="1" opacity="0.6" />
-          <path d="M-18 36 L-12 10 L12 10 L18 36 Z" :fill="isRed ? '#991b1b' : '#312e81'" />
-          <text x="0" y="27" font-size="12" text-anchor="middle">🌹</text>
-        </g>
+        <!-- King: The High Sovereign -->
+        <template v-else-if="rank === 'K'">
+          <circle cx="0" cy="-14" r="14" fill="#fde68a" stroke="#b45309" stroke-width="1" />
+          <!-- Majestic High Crown -->
+          <path d="M-14 -20 L-12 -31 L-4 -23 L0 -33 L4 -23 L12 -31 L14 -20 Z" fill="#eab308" stroke="#78350f" stroke-width="1.2" />
+          <circle cx="-12" cy="-31" r="1.5" fill="#15803d" />
+          <circle cx="0" cy="-33" r="2" fill="#b91c1c" />
+          <circle cx="12" cy="-31" r="1.5" fill="#15803d" />
+          <!-- King Beard & Face -->
+          <circle cx="-4" cy="-16" r="1.5" fill="#1e293b" />
+          <circle cx="4" cy="-16" r="1.5" fill="#1e293b" />
+          <path d="M-6 -8 L0 -4 L6 -8" stroke="#78350f" stroke-width="1.4" fill="none" />
+          <path d="M-8 -6 Q0 0 8 -6 L6 4 Q0 10 -6 4 Z" fill="#d97706" />
+          <!-- Ermine Robe -->
+          <path d="M-20 28 L-15 0 L15 0 L20 28 Z" fill="#991b1b" stroke="#fef08a" stroke-width="1" />
+          <!-- Broadsword in center -->
+          <line x1="0" y1="0" x2="0" y2="30" stroke="#cbd5e1" stroke-width="2.5" />
+          <line x1="-6" y1="6" x2="6" y2="6" stroke="#eab308" stroke-width="2" />
+        </template>
 
-        <g v-else>
-          <!-- Jack (الشاب) -->
-          <circle cx="0" cy="-12" r="13" fill="#fde047" stroke="#d4af37" stroke-width="1" />
-          <!-- Headband / Hat -->
-          <rect x="-10" y="-24" width="20" height="6" rx="2" fill="#b91c1c" stroke="#d4af37" stroke-width="0.8" />
-          <circle cx="-3" cy="-13" r="1" fill="#0f172a" />
-          <circle cx="3" cy="-13" r="1" fill="#0f172a" />
-          <path d="M-3 -8 Q0 -7 3 -8" stroke="#0f172a" stroke-width="1" fill="none" />
-          <!-- Robe with Sword -->
-          <path d="M-19 36 L-13 10 L13 10 L19 36 Z" :fill="isRed ? '#c2410c' : '#0f766e'" />
-          <path d="M-10 18 L10 32" stroke="#d4af37" stroke-width="1.8" />
-          <text x="0" y="27" font-size="12" text-anchor="middle">⚔️</text>
-        </g>
-
-        <!-- Small Suit in Court Card Center -->
-        <g transform="translate(18, -30) scale(0.6)">
-          <use :href="suitHref" />
-        </g>
-        <g transform="translate(-18, 30) scale(0.6)">
+        <!-- Suit Inset on Character Frame -->
+        <g transform="translate(0, 32) scale(0.65)">
           <use :href="suitHref" />
         </g>
       </g>
 
-      <!-- 3) NUMBER CARDS (2 to 10): Geometric Pip Grid -->
+      <!-- Ace (Large Centered Suit) -->
+      <g v-else-if="rank === 'A'" transform="translate(50, 70) scale(1.65)">
+        <use :href="suitHref" />
+      </g>
+
+      <!-- Number Cards (Pip Layout) -->
       <g v-else>
         <g
-          v-for="(pip, idx) in numPips"
-          :key="idx"
-          :transform="`translate(${pip.x}, ${pip.y}) scale(${pip.scale || 0.85}) ${pip.flip ? 'rotate(180)' : ''}`"
+          v-for="(pip, i) in numPips"
+          :key="i"
+          :transform="`translate(${pip.x}, ${pip.y}) ${pip.flip ? 'rotate(180)' : ''} scale(${pip.scale || 0.65})`"
         >
           <use :href="suitHref" />
         </g>
@@ -278,6 +334,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useUiStore, type DeckType } from '~/stores/ui'
 
 const props = withDefaults(
   defineProps<{
@@ -285,6 +342,7 @@ const props = withDefaults(
     suit?: string
     joker?: boolean
     back?: boolean
+    deck?: DeckType
     isSelected?: boolean
     isPlayable?: boolean
     isDimmed?: boolean
@@ -300,6 +358,7 @@ const props = withDefaults(
   }
 )
 
+const ui = useUiStore()
 const isHovered = ref(false)
 
 const isRed = computed(() => props.suit === '♥' || props.suit === '♦')
@@ -312,6 +371,33 @@ const suitHref = computed(() => {
     case '♠': return '#suit-spade'
     case '♣': return '#suit-club'
     default: return '#suit-spade'
+  }
+})
+
+// Active Deck Theme Mapping
+const deckThemeKey = computed<DeckType>(() => {
+  if (props.deck && ['gold', 'emerald', 'heritage', 'royal'].includes(props.deck)) {
+    return props.deck
+  }
+  const d = ui.activeDeck
+  return ['gold', 'emerald', 'heritage', 'royal'].includes(d) ? d : 'gold'
+})
+
+const deckStrokeColor = computed(() => {
+  switch (deckThemeKey.value) {
+    case 'emerald': return '#10b981'
+    case 'heritage': return '#eab308'
+    case 'royal': return '#38bdf8'
+    default: return '#d4af37'
+  }
+})
+
+const deckCenterBg = computed(() => {
+  switch (deckThemeKey.value) {
+    case 'emerald': return '#022c22'
+    case 'heritage': return '#1c0303'
+    case 'royal': return '#0f172a'
+    default: return '#0c3521'
   }
 })
 
@@ -328,48 +414,48 @@ const numPips = computed<PipPos[]>(() => {
   switch (r) {
     case '2':
       return [
-        { x: 50, y: 34 },
-        { x: 50, y: 106, flip: true },
+        { x: 50, y: 35 },
+        { x: 50, y: 105, flip: true },
       ]
     case '3':
       return [
-        { x: 50, y: 34 },
+        { x: 50, y: 35 },
         { x: 50, y: 70 },
-        { x: 50, y: 106, flip: true },
+        { x: 50, y: 105, flip: true },
       ]
     case '4':
       return [
-        { x: 32, y: 34 },
-        { x: 68, y: 34 },
-        { x: 32, y: 106, flip: true },
-        { x: 68, y: 106, flip: true },
+        { x: 32, y: 35 },
+        { x: 68, y: 35 },
+        { x: 32, y: 105, flip: true },
+        { x: 68, y: 105, flip: true },
       ]
     case '5':
       return [
-        { x: 32, y: 34 },
-        { x: 68, y: 34 },
+        { x: 32, y: 35 },
+        { x: 68, y: 35 },
         { x: 50, y: 70 },
-        { x: 32, y: 106, flip: true },
-        { x: 68, y: 106, flip: true },
+        { x: 32, y: 105, flip: true },
+        { x: 68, y: 105, flip: true },
       ]
     case '6':
       return [
-        { x: 32, y: 34 },
-        { x: 68, y: 34 },
+        { x: 32, y: 35 },
+        { x: 68, y: 35 },
         { x: 32, y: 70 },
         { x: 68, y: 70 },
-        { x: 32, y: 106, flip: true },
-        { x: 68, y: 106, flip: true },
+        { x: 32, y: 105, flip: true },
+        { x: 68, y: 105, flip: true },
       ]
     case '7':
       return [
-        { x: 32, y: 34 },
-        { x: 68, y: 34 },
+        { x: 32, y: 35 },
+        { x: 68, y: 35 },
         { x: 50, y: 52 },
         { x: 32, y: 70 },
         { x: 68, y: 70 },
-        { x: 32, y: 106, flip: true },
-        { x: 68, y: 106, flip: true },
+        { x: 32, y: 105, flip: true },
+        { x: 68, y: 105, flip: true },
       ]
     case '8':
       return [
