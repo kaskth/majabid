@@ -214,6 +214,9 @@
     <!-- Stop Ambush Backdrop Vignette (Zero UI Overlays) -->
     <GameStopBanner />
 
+    <!-- 60FPS Hardware Accelerated Realistic Card Physics & Flight Layer -->
+    <GameCardFlightLayer />
+
     <!-- ============================================================ -->
     <!-- BOTTOM PLAYER CONTROL DOCK (Clean, Mobile First, No Overlap) -->
     <!-- ============================================================ -->

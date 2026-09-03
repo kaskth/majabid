@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { useAudioStore } from './audio'
 import { useUiStore } from './ui'
 import { useAuthStore, type UserAccount } from './auth'
+import { useCardAnimation } from '~/composables/useCardAnimation'
 
 export interface CardData {
   id?: string
@@ -146,6 +147,7 @@ export const useGameStore = defineStore('game', () => {
   const leaderboardList = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } }[]>([])
   const leaderboardMy = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } } | null>(null)
   const lastActionAnnouncement = ref<{ text: string; kind: string; time: number } | null>(null)
+  const cardAnim = useCardAnimation()
 
   // Socket reference
   let socket: WebSocket | null = null
@@ -269,6 +271,8 @@ export const useGameStore = defineStore('game', () => {
         isSpec.value = !!s.isSpec
         mode.value = s.mode
         target.value = s.target
+        const prevRound = round.value
+        const prevHandLen = myHand.value.length
         round.value = s.round
         dealer.value = s.dealer
         turn.value = s.turn
@@ -282,6 +286,11 @@ export const useGameStore = defineStore('game', () => {
         piles.value = s.piles
         handCounts.value = s.handCounts
         myHand.value = s.myHand || []
+
+        // Trigger dealing animation when round advances or cards dealt
+        if ((s.round > prevRound && prevRound > 0) || (prevHandLen === 0 && (s.myHand || []).length > 0)) {
+          cardAnim.triggerFlight({ type: 'deal' })
+        }
         myOptions.value = s.myOptions || { cards: {}, discard: false, pass: false, mustEat: false }
         canStop.value = s.canStop
         pending.value = s.pending
@@ -370,6 +379,47 @@ export const useGameStore = defineStore('game', () => {
         break
       case 'chat':
         audio.sfx.chat()
+        break
+    }
+
+    // Trigger Card Physics & Flight Animations
+    switch (ev.kind) {
+      case 'discard':
+        cardAnim.triggerFlight({
+          type: 'discard',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: (ev as any).joker,
+        })
+        break
+      case 'eat':
+      case 'jokerEat':
+        cardAnim.triggerFlight({
+          type: 'eat',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: ev.kind === 'jokerEat' || (ev as any).cardJoker,
+          count: ev.count,
+        })
+        break
+      case 'stop':
+      case 'jokerStop':
+        cardAnim.triggerFlight({
+          type: 'stop',
+          seatIndex: ev.seat,
+          rank: ev.rank,
+          suit: (ev as any).suit,
+          joker: ev.kind === 'jokerStop' || (ev as any).joker,
+        })
+        break
+      case 'flip':
+        cardAnim.triggerFlight({
+          type: 'flip',
+          rank: ev.rank,
+          suit: (ev as any).suit,
+        })
         break
     }
   }

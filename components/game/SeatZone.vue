@@ -1,5 +1,5 @@
 <template>
-  <div class="relative flex flex-col items-center justify-center transition-all duration-300">
+  <div :id="`seat-zone-${seatIndex}`" class="relative flex flex-col items-center justify-center transition-all duration-300">
     <!-- Speech Bubble -->
     <Transition
       enter-active-class="transition duration-200 ease-out transform"

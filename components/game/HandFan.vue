@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full max-w-4xl mx-auto h-[95px] sm:h-[130px] landscape:h-[72px] flex items-end justify-center select-none px-2 sm:px-4">
+  <div id="hand-fan-container" class="relative w-full max-w-4xl mx-auto h-[95px] sm:h-[130px] landscape:h-[72px] flex items-end justify-center select-none px-2 sm:px-4">
     <!-- Cards Hand Fan Container -->
     <div
       ref="containerRef"

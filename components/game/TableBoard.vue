@@ -29,17 +29,21 @@
           </div>
 
           <!-- Field Cards Row / Grid -->
-          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-y-auto max-h-[120px] sm:max-h-[180px] landscape:max-h-[85px] no-scrollbar py-0.5">
+          <div
+            id="table-field-target"
+            v-if="groupedField.length > 0"
+            class="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-y-auto max-h-[120px] sm:max-h-[180px] landscape:max-h-[85px] no-scrollbar py-0.5"
+          >
             <div
               v-for="grp in groupedField"
               :key="grp.rank"
-              class="group relative flex items-center justify-center p-0.5 sm:p-1 rounded-xl sm:rounded-2xl bg-black/50 border transition-all duration-200 cursor-pointer"
+              class="group relative flex items-center justify-center p-0.5 sm:p-1 rounded-xl sm:rounded-2xl bg-black/50 border transition-all duration-300 cursor-pointer"
               :class="[
                 canEatRank(grp.rank)
-                  ? 'border-emerald-400 shadow-[0_0_15px_rgba(52,211,153,0.7)] scale-105 hover:scale-115 ring-2 ring-emerald-400 animate-pulse'
+                  ? 'border-amber-400 shadow-[0_0_14px_rgba(245,197,66,0.45)] -translate-y-1 scale-105 hover:scale-110'
                   : 'border-white/15 hover:border-amber-400/60 hover:scale-105'
               ]"
-              :title="canEatRank(grp.rank) ? 'اضغط للأكل المباشر!' : `مجموعة ${grp.rank}`"
+              :title="canEatRank(grp.rank) ? 'ورقة قابلة للأكل' : `مجموعة ${grp.rank}`"
               @click="onFieldCardClick(grp.rank)"
             >
               <!-- 3D Card Stack Effect -->
@@ -57,17 +61,18 @@
               <!-- Multiplier Badge -->
               <span
                 v-if="grp.count > 1"
-                class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-full bg-amber-500 text-black font-black text-[9px] sm:text-[10px] shadow"
+                class="absolute -bottom-1 -right-1 px-1 py-0.2 rounded-full bg-amber-500 text-black font-black text-[9px] sm:text-[10px] shadow z-10"
               >
                 ×{{ grp.count }}
               </span>
 
-              <!-- Direct Eat Callout -->
+              <!-- Subtle Mini Eat Indicator Dot (Never covers the card artwork or numbers) -->
               <span
                 v-if="canEatRank(grp.rank)"
-                class="absolute -top-2.5 px-2 py-0.5 rounded-full bg-emerald-500 text-black font-black text-[9px] shadow-md select-none tracking-wide animate-bounce"
+                class="absolute -top-1 -left-1 w-3.5 h-3.5 rounded-full bg-amber-400 text-black font-black text-[9px] shadow-md flex items-center justify-center border border-white/40 z-10 animate-bounce"
+                title="قابلة للأكل"
               >
-                كِل 🍽️
+                🍽️
               </span>
             </div>
           </div>
@@ -80,7 +85,7 @@
         </div>
 
         <!-- 3D Tactical Deck -->
-        <div class="flex flex-col items-center justify-center pl-2 sm:pl-3 border-r border-amber-400/20 shrink-0 z-10">
+        <div id="table-deck-source" class="flex flex-col items-center justify-center pl-2 sm:pl-3 border-r border-amber-400/20 shrink-0 z-10">
           <div
             class="relative w-10 sm:w-16 landscape:w-9 h-14 sm:h-22 landscape:h-13 transition-transform hover:scale-105 cursor-pointer"
             title="رزمة الأوراق المتبقية"
