@@ -44,15 +44,14 @@ async function run() {
   });
 
   async function capture(url, w, h, isMobile, filename, waitMs = 3500) {
-    await send('Page.navigate', { url });
-    await new Promise(r => setTimeout(r, waitMs));
     await send('Emulation.setDeviceMetricsOverride', {
       width: w,
       height: h,
       deviceScaleFactor: isMobile ? 2 : 1,
       mobile: isMobile,
     });
-    await new Promise(r => setTimeout(r, 600));
+    await send('Page.navigate', { url });
+    await new Promise(r => setTimeout(r, waitMs));
     const shot = await send('Page.captureScreenshot', { format: 'png' });
     fs.writeFileSync(path.join(targetDir, filename), Buffer.from(shot.data, 'base64'));
     console.log(`Saved ${filename}`);

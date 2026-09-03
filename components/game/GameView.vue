@@ -100,17 +100,6 @@
       👁️ تشاهد الجلسة المباشرة كمتفرج
     </div>
 
-    <!-- Live Event Log -->
-    <div class="w-full max-w-lg mx-auto px-2 py-0.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar z-30 pointer-events-none">
-      <div
-        v-for="log in game.logs.slice(0, 3)"
-        :key="log.id"
-        class="shrink-0 px-2 py-0.2 rounded-full bg-black/75 border border-white/10 text-[9px] sm:text-xs text-gray-200 backdrop-blur-sm shadow-sm"
-      >
-        {{ log.text }}
-      </div>
-    </div>
-
     <!-- Turn Spotlight -->
     <div
       v-if="game.phase === 'acting' && !game.isSpec"
@@ -123,9 +112,9 @@
     <!-- ============================================================ -->
     <!-- CENTRAL PLAYING ARENA (Top Seat, Left/Right Seats, 3D Table) -->
     <!-- ============================================================ -->
-    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-between landscape:justify-start items-center px-1 sm:px-3 pt-0.5 z-20 overflow-hidden">
-      <!-- 1. MOBILE PORTRAIT VIEW: ALL 3 OTHER PLAYERS IN A SINGLE TOP BAR -->
-      <div v-if="!isLandscape" class="flex sm:hidden landscape:hidden w-full items-center justify-between gap-1 px-1 mb-1 z-20">
+    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-start items-center px-1 sm:px-3 pt-1.5 z-20 overflow-hidden">
+      <!-- 1. MOBILE PORTRAIT VIEW: ALL 3 OTHER PLAYERS IN A SINGLE TOP BAR (Spacious, Uncrowded) -->
+      <div v-if="!isLandscape" class="flex sm:hidden landscape:hidden w-full items-center justify-between gap-1.5 px-1.5 mb-1 z-20 shrink-0">
         <!-- Left Opponent (Seat 1) -->
         <div class="w-[32%] max-w-[115px]">
           <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" />
@@ -146,7 +135,7 @@
       </div>
 
       <!-- Middle Arena Row (Desktop & Landscape: Left Seat, 3D Table, Right Seat / Portrait: 100% Wide Table) -->
-      <div class="relative w-full flex items-center justify-between gap-1 z-10 flex-1 landscape:flex-initial landscape:my-0.5">
+      <div class="relative w-full flex items-center justify-between gap-1 z-10 shrink-0 my-0.5">
         <!-- Left Seat (Desktop & Mobile Landscape) -->
         <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
           <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="isLandscape" />
@@ -163,7 +152,7 @@
         </div>
       </div>
 
-      <!-- 3. FIXED TACTICAL STATUS RIBBON (Guarantees ZERO Layout Shift - Table never moves!) -->
+      <!-- 3. FIXED TACTICAL STATUS RIBBON (Guarantees ZERO Layout Shift - Directly Below Table Rim) -->
       <div class="w-full max-w-md mx-auto h-7 sm:h-8 shrink-0 flex items-center justify-center px-1 my-0.5 z-20 overflow-hidden pointer-events-none select-none">
         <Transition
           enter-active-class="transition duration-200 ease-out"
@@ -174,9 +163,24 @@
           leave-to-class="opacity-0 scale-95"
           mode="out-in"
         >
-          <!-- State A: It's My Turn -->
+          <!-- State A: Ambush in progress -->
           <div
-            v-if="game.isMyTurn && game.phase === 'acting'"
+            v-if="game.phase === 'stop' && game.pending"
+            key="ambush-active"
+            class="px-3.5 py-0.5 sm:py-1 rounded-full bg-black/90 border border-rose-500/80 text-rose-300 text-[11px] sm:text-xs font-black shadow-[0_0_15px_rgba(225,29,72,0.6)] backdrop-blur-md flex items-center gap-2"
+          >
+            <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            <span>⛔ كمين «وقّف!»:</span>
+            <span class="text-amber-300 font-bold">{{ ambushOwnerName }}</span>
+            <span class="text-white">أكل {{ game.pending.rank }} ({{ game.pending.count }} ورقة)</span>
+            <span class="w-4 h-4 rounded-full bg-rose-600 text-white font-mono font-black text-[10px] flex items-center justify-center">
+              {{ ambushRemainingSeconds }}
+            </span>
+          </div>
+
+          <!-- State B: It's My Turn -->
+          <div
+            v-else-if="game.isMyTurn && game.phase === 'acting'"
             key="my-turn"
             class="px-3 sm:px-4 py-0.5 sm:py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-black text-[11px] sm:text-xs shadow-gold-glow flex items-center gap-1.5 animate-bounce"
           >
@@ -184,7 +188,7 @@
             <span>{{ game.myOptions.mustEat ? '⚠️ لديك أكلة إجبارية! اختر ورقة للأكل' : 'دورك الآن! اختر ورقة أو انقر عليها مرتين للعب' }}</span>
           </div>
 
-          <!-- State B: Recent Action Announcement -->
+          <!-- State C: Recent Action Announcement -->
           <div
             v-else-if="game.lastActionAnnouncement"
             :key="game.lastActionAnnouncement.time"
@@ -194,7 +198,7 @@
             <span class="truncate max-w-[280px] sm:max-w-xs">{{ game.lastActionAnnouncement.text }}</span>
           </div>
 
-          <!-- State C: Ambient Round Status (Maintains Exact Reserved Height) -->
+          <!-- State D: Ambient Round Status (Maintains Exact Reserved Height) -->
           <div
             v-else
             key="idle"
@@ -207,13 +211,13 @@
       </div>
     </div>
 
-    <!-- Stop Ambush Banner (Centered at top of arena, never blocking hand cards!) -->
+    <!-- Stop Ambush Backdrop Vignette (Zero UI Overlays) -->
     <GameStopBanner />
 
     <!-- ============================================================ -->
     <!-- BOTTOM PLAYER CONTROL DOCK (Clean, Mobile First, No Overlap) -->
     <!-- ============================================================ -->
-    <div class="relative w-full flex flex-col items-center justify-end z-30 pb-safe">
+    <div class="relative w-full flex flex-col items-center justify-end z-30 pb-safe mt-auto">
       <!-- 1. Action Buttons Dock (Floats above player shelf) -->
       <Transition
         enter-active-class="transition duration-200 ease-out transform"
@@ -223,8 +227,35 @@
         leave-from-class="scale-100 opacity-100"
         leave-to-class="scale-90 opacity-0"
       >
+        <!-- Ambush Stop Button (Sits cleanly in the action dock above the shelf, NEVER behind cards!) -->
         <div
-          v-if="game.isMyTurn && game.phase === 'acting'"
+          v-if="game.phase === 'stop' && game.pending && canStopAct && !hasStopFolded"
+          class="mb-2 landscape:mb-0.5 flex items-center justify-center gap-2 px-3 py-1.5 rounded-2xl bg-black/95 backdrop-blur-xl border-2 border-rose-500 shadow-[0_0_25px_rgba(225,29,72,0.85)] z-40 max-w-[96vw] animate-bounce"
+        >
+          <button
+            class="px-5 py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-sm shadow-md flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform"
+            @click="executeStop"
+          >
+            <span class="text-base">⛔</span>
+            <span>صرخة «وقّف!» (اخطف الصيدة)</span>
+            <span v-if="matchingStopCardText" class="bg-black/60 px-2 py-0.5 rounded-md text-amber-300 text-xs font-mono font-bold">
+              {{ matchingStopCardText }}
+            </span>
+            <span class="w-5 h-5 rounded-full bg-black/40 text-amber-300 font-mono text-xs font-black flex items-center justify-center border border-white/20">
+              {{ ambushRemainingSeconds }}ث
+            </span>
+          </button>
+          <button
+            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/20 active:scale-95 transition-colors"
+            @click="hasStopFolded = true"
+          >
+            تجاوز
+          </button>
+        </div>
+
+        <!-- Normal Turn Play Buttons (Eat / Discard / Pass) -->
+        <div
+          v-else-if="game.isMyTurn && game.phase === 'acting'"
           class="mb-1.5 landscape:mb-0.5 flex items-center justify-center gap-2 px-3 py-1.5 landscape:py-0.5 rounded-2xl bg-black/95 backdrop-blur-xl border-2 border-amber-400 shadow-2xl z-40 max-w-[96vw]"
         >
           <!-- Eat Button(s) -->
@@ -262,7 +293,10 @@
       </Transition>
 
       <!-- 2. Player Status & Piles Strip (Portrait: In-Flow. Landscape: Docked to corners) -->
-      <div class="landscape:hidden w-full max-w-lg mx-auto px-2 sm:px-4 flex items-center justify-between gap-1 text-xs mb-0.5 select-none">
+      <div
+        v-if="!isLandscape"
+        class="w-full max-w-lg mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 text-xs mb-3 sm:mb-4 select-none relative z-30"
+      >
         <!-- Player Pile (Buried & Chain) -->
         <div class="flex items-center gap-2 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow">
           <span class="text-[10px] text-gray-300 font-mono font-bold">
@@ -313,7 +347,8 @@
 
       <!-- Corner Player Pod for Mobile Landscape (Leaves table 100% visible & unblocked!) -->
       <div
-        class="hidden landscape:flex fixed bottom-1 left-2 z-40 items-center gap-1.5 px-2.5 py-1 rounded-xl border bg-black/90 backdrop-blur-md shadow-lg select-none"
+        v-if="isLandscape"
+        class="fixed bottom-1 left-2 z-40 flex items-center gap-1.5 px-2.5 py-1 rounded-xl border bg-black/90 backdrop-blur-md shadow-lg select-none"
         :class="[
           game.mySeat % 2 === 0 ? 'bg-blue-950/80 border-blue-500/50' : 'bg-rose-950/80 border-rose-500/50',
           game.isMyTurn ? 'ring-2 ring-amber-400' : ''
@@ -330,7 +365,10 @@
       </div>
 
       <!-- Corner Emoji Reactions for Mobile Landscape -->
-      <div class="hidden landscape:flex fixed bottom-1 right-2 z-40 items-center gap-0.5 px-2 py-1 rounded-xl border border-white/20 bg-black/90 backdrop-blur-md shadow-lg select-none">
+      <div
+        v-if="isLandscape"
+        class="fixed bottom-1 right-2 z-40 flex items-center gap-0.5 px-2 py-1 rounded-xl border border-white/20 bg-black/90 backdrop-blur-md shadow-lg select-none"
+      >
         <button
           v-for="em in ['🔥', '😎', '👏', '💔']"
           :key="em"
@@ -354,7 +392,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '~/stores/game'
 import { useAudioStore } from '~/stores/audio'
 import { useUiStore } from '~/stores/ui'
@@ -451,6 +489,72 @@ const canDiscardSelected = computed(() => {
   const opt = game.myOptions.cards[game.selectedCardId]
   return !!opt?.discard
 })
+
+// Ambush State & Action Handlers (Zero Overlap with Cards)
+const hasStopFolded = ref(false)
+
+watch(
+  () => game.pending?.tStop,
+  () => {
+    hasStopFolded.value = false
+  }
+)
+
+const isPendingOwner = computed(() => {
+  if (!game.pending) return false
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  return ownerSeat === game.mySeat
+})
+
+const canStopAct = computed(() => {
+  if (game.isSpec) return false
+  if (isPendingOwner.value) return false
+  if (game.mySeat < 0) return false
+  return game.myStopCards.length > 0
+})
+
+const matchingStopCard = computed(() => {
+  if (!canStopAct.value) return null
+  return game.myStopCards[0]
+})
+
+const matchingStopCardText = computed(() => {
+  if (!matchingStopCard.value) return ''
+  if (matchingStopCard.value.joker) return '🃏 جوكر'
+  return `${matchingStopCard.value.suit}${matchingStopCard.value.rank}`
+})
+
+const ambushOwnerName = computed(() => {
+  if (!game.pending) return 'الخصم'
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  if (ownerSeat === undefined || ownerSeat === null) return 'الخصم'
+  const s = game.seats[ownerSeat]
+  return s?.name || `لاعب ${ownerSeat + 1}`
+})
+
+const nowTime = ref(Date.now())
+let nowInterval: ReturnType<typeof setInterval> | null = null
+
+onMounted(() => {
+  nowInterval = setInterval(() => {
+    nowTime.value = Date.now()
+  }, 100)
+})
+
+onUnmounted(() => {
+  if (nowInterval) clearInterval(nowInterval)
+})
+
+const ambushRemainingSeconds = computed(() => {
+  if (!game.pending?.tStop) return 0
+  return Math.max(0, Math.ceil((game.pending.tStop - nowTime.value) / 1000))
+})
+
+function executeStop() {
+  if (!canStopAct.value || !matchingStopCard.value) return
+  audio.sfx.stopAmbush()
+  game.playCard('stop', matchingStopCard.value.id)
+}
 
 const tableBackgroundClass = computed(() => {
   switch (ui.theme) {
