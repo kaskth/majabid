@@ -16,11 +16,11 @@
     >
       <div
         v-if="game.phase === 'stop' && game.pending"
-        class="fixed top-20 sm:top-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-1 max-w-[94vw] w-auto select-none"
+        class="fixed inset-0 z-50 flex items-center justify-center p-3 pointer-events-none select-none"
       >
-        <!-- Cinematic Ambush Card -->
+        <!-- Cinematic Ambush Card (Centered over table, leaving all 4 player seats and hand cards visible) -->
         <div
-          class="relative px-3.5 py-2 sm:px-6 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-black/95 backdrop-blur-2xl border border-rose-500/60 shadow-[0_0_30px_rgba(225,29,72,0.45)] text-center min-w-[260px] sm:min-w-[320px]"
+          class="pointer-events-auto relative px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-black/95 backdrop-blur-2xl border-2 border-rose-500 shadow-[0_0_35px_rgba(225,29,72,0.55)] text-center min-w-[260px] sm:min-w-[320px] max-w-[92vw]"
         >
           <!-- Header -->
           <div class="flex items-center justify-between gap-2 mb-1">

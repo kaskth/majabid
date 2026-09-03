@@ -62,23 +62,17 @@ async function run() {
     console.log('Connected to Chrome DevTools Protocol');
     await send('Page.enable');
 
-    // 1. Mobile Home Page (390x844)
+    // 1. Mobile Home Page (Clean, real, no fake options)
     await capture('http://localhost:3005/', 390, 844, true, 'screenshot_mobile_home.png', 2000);
 
-    // 2. Mobile In-Game (390x844)
-    await capture('http://localhost:3005/?quick=1&theme=1', 390, 844, true, 'screenshot_mobile_game.png', 4000);
+    // 2. Mobile In-Game Portrait (390x844) - All 4 players clearly visible
+    await capture('http://localhost:3005/?quick=1&theme=1', 390, 844, true, 'screenshot_mobile_game_portrait.png', 4000);
 
-    // 3. Desktop Theme 1: Najd (1280x800)
-    await capture('http://localhost:3005/?quick=1&theme=1', 1280, 800, false, 'screenshot_theme_najd.png', 3500);
+    // 3. Mobile In-Game Landscape (844x390) - Horizontal layout
+    await capture('http://localhost:3005/?quick=1&theme=1', 844, 390, true, 'screenshot_mobile_game_landscape.png', 3500);
 
-    // 4. Desktop Theme 2: Samman (1280x800)
-    await capture('http://localhost:3005/?quick=1&theme=2', 1280, 800, false, 'screenshot_theme_samman.png', 3500);
-
-    // 5. Desktop Theme 3: Dubai (1280x800)
-    await capture('http://localhost:3005/?quick=1&theme=3', 1280, 800, false, 'screenshot_theme_dubai.png', 3500);
-
-    // 6. Desktop Theme 4: Balad (1280x800)
-    await capture('http://localhost:3005/?quick=1&theme=4', 1280, 800, false, 'screenshot_theme_balad.png', 3500);
+    // 4. Desktop In-Game (1280x800)
+    await capture('http://localhost:3005/?quick=1&theme=1', 1280, 800, false, 'screenshot_desktop_game.png', 3500);
 
     ws.close();
     process.exit(0);

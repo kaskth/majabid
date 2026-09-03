@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full max-w-4xl mx-auto h-32 sm:h-44 flex items-end justify-center select-none px-2 sm:px-4">
+  <div class="relative w-full max-w-4xl mx-auto h-26 sm:h-36 landscape:h-20 flex items-end justify-center select-none px-2 sm:px-4">
     <!-- Cards Hand Fan Container -->
     <div
       ref="containerRef"
@@ -10,10 +10,9 @@
       <div
         v-for="(card, index) in cards"
         :key="card.id || index"
-        class="absolute bottom-0 w-12 sm:w-16 md:w-20 transition-all duration-300 transform-gpu origin-bottom cursor-pointer touch-manipulation"
+        class="absolute bottom-0 w-11 sm:w-16 md:w-20 landscape:w-9 landscape:sm:w-12 transition-all duration-300 transform-gpu origin-bottom cursor-pointer touch-manipulation"
         :style="getCardStyle(index, cards.length, card.id)"
-        @click="selectCard(card.id!)"
-        @dblclick="quickPlayCard(card.id!)"
+        @click="onCardClick(card.id!)"
       >
         <GameCard
           :rank="card.r"
@@ -24,13 +23,14 @@
           :is-dimmed="isCardDimmed(card.id!)"
         />
 
-        <!-- Playable Quick Badge (Eat or Discard) -->
+        <!-- Visual Eat Callout Badge on Card -->
         <span
-          v-if="game.isMyTurn && isCardPlayable(card.id!) && game.selectedCardId === card.id"
-          class="absolute -top-3 left-1/2 -translate-x-1/2 px-1.5 sm:px-2 py-0.2 rounded-full text-[8px] sm:text-[9px] font-black shadow-md z-50 whitespace-nowrap animate-bounce"
-          :class="hasEats(card.id!) ? 'bg-emerald-500 text-black' : 'bg-slate-700 text-white'"
+          v-if="game.isMyTurn && hasEats(card.id!)"
+          class="absolute -top-2.5 right-0 px-1 py-0.2 rounded-full text-[8px] font-black bg-emerald-500 text-black shadow-lg z-30 animate-pulse flex items-center gap-0.5"
+          title="هذه الورقة يمكنها الأكل!"
         >
-          {{ hasEats(card.id!) ? 'أكل 🍽️' : 'رمي 🎯' }}
+          <span>🍽️</span>
+          <span class="hidden sm:inline">أكل</span>
         </span>
       </div>
     </div>
@@ -76,6 +76,14 @@ function isCardDimmed(cardId: string) {
 function selectCard(cardId: string) {
   audio.sfx.pick()
   game.selectedCardId = cardId
+}
+
+function onCardClick(cardId: string) {
+  if (game.selectedCardId === cardId && game.isMyTurn) {
+    quickPlayCard(cardId)
+  } else {
+    selectCard(cardId)
+  }
 }
 
 function quickPlayCard(cardId: string) {

@@ -11,7 +11,7 @@
     >
       <div
         v-if="hasBubble"
-        class="absolute -top-14 z-50 px-3 py-1.5 bg-black/95 text-amber-200 rounded-2xl shadow-2xl border border-amber-400/60 text-xs font-black max-w-[210px] text-center whitespace-normal break-words after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-amber-400"
+        class="absolute -top-12 z-50 px-2.5 py-1 bg-black/95 text-amber-200 rounded-xl shadow-2xl border border-amber-400/60 text-[11px] font-black max-w-[190px] text-center whitespace-normal break-words after:content-[''] after:absolute after:top-full after:left-1/2 after:-translate-x-1/2 after:border-4 after:border-transparent after:border-t-amber-400 pointer-events-none"
       >
         {{ seat?.bubble?.text }}
       </div>
@@ -28,14 +28,56 @@
     >
       <div
         v-if="hasReaction"
-        class="absolute -top-10 -right-2 z-50 text-3xl filter drop-shadow animate-bounce select-none pointer-events-none"
+        class="absolute -top-8 -right-2 z-50 text-2xl filter drop-shadow animate-bounce select-none pointer-events-none"
       >
         {{ seat?.reaction?.emoji }}
       </div>
     </Transition>
 
-    <!-- Player Card / Avatar Container with Team Color Styling -->
+    <!-- 1. COMPACT MODE (For Mobile Top Row & Tight Spaces) -->
     <div
+      v-if="compact"
+      class="relative flex items-center gap-1.5 px-2 py-1 rounded-xl backdrop-blur-md transition-all duration-300 border shadow-md select-none max-w-full"
+      :class="[
+        teamPodClass,
+        isCurrentTurn ? 'ring-2 ring-amber-400 scale-102 bg-black/85 shadow-[0_0_15px_rgba(245,158,11,0.5)]' : 'bg-black/65',
+        !seat?.connected && !seat?.isBot ? 'opacity-50 grayscale' : '',
+      ]"
+    >
+      <!-- Mini Avatar & Dealer Chip -->
+      <div class="relative shrink-0">
+        <UiAvatarImg
+          :avatar="seat?.avatar || 'a1'"
+          size="xs"
+          :border="isCurrentTurn ? 'gold' : 'none'"
+        />
+        <span v-if="isDealer" class="absolute -top-2 -right-1 text-[9px]">🪙</span>
+        <!-- Turn indicator dot -->
+        <span
+          v-if="isCurrentTurn"
+          class="absolute -bottom-1 -left-1 w-2 h-2 rounded-full bg-amber-400 animate-ping"
+        />
+      </div>
+
+      <!-- Player Info & Hand / Buried Count -->
+      <div class="flex flex-col text-right leading-none min-w-0">
+        <div class="flex items-center gap-1">
+          <span class="font-bold text-[10px] sm:text-[11px] text-white truncate max-w-[65px]">
+            {{ seat?.name || `لاعب ${seatIndex + 1}` }}
+          </span>
+          <span v-if="seat?.bot || seat?.isBot" class="text-[8px] text-emerald-400">🤖</span>
+        </div>
+        <div class="flex items-center gap-1 text-[9px] sm:text-[10px] text-gray-300 mt-0.5 font-mono">
+          <span class="text-amber-300 font-bold">🂠 {{ handCount }}</span>
+          <span v-if="pile?.buriedCount" class="text-gray-400">📦 {{ pile.buriedCount }}</span>
+          <span v-if="pile?.chain" class="text-amber-400 font-bold">👑 {{ pile.chain.rank }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. FULL STANDARD MODE (For Desktop & Tablet) -->
+    <div
+      v-else
       class="relative flex items-center gap-2 p-2 rounded-2xl backdrop-blur-md transition-all duration-300 border shadow-lg select-none"
       :class="[
         teamPodClass,
@@ -121,8 +163,8 @@
       </div>
     </div>
 
-    <!-- 3D Card Piles (Madfoon & Chain) -->
-    <div class="mt-2 flex items-center justify-center gap-2 min-h-[52px]">
+    <!-- 3D Card Piles (Madfoon & Chain) - only in full mode -->
+    <div v-if="!compact && pile" class="mt-2 flex items-center justify-center gap-2 min-h-[52px]">
       <!-- Buried Stack (المدفون) with 3D Depth -->
       <div v-if="pile.buriedCount > 0" class="flex flex-col items-center select-none">
         <div class="relative w-8 h-11">
@@ -165,7 +207,7 @@
         </span>
       </div>
 
-      <!-- Pending Stop Capture Stack (الأكلة المعلقة في الهواء) -->
+      <!-- Pending Stop Capture Stack -->
       <div v-if="isPendingOwner" class="flex flex-col items-center animate-bounce select-none">
         <div class="relative w-9 sm:w-10 h-13 sm:h-14 shadow-[0_0_20px_rgba(245,158,11,0.8)]">
           <GameCard
@@ -190,10 +232,13 @@ import { useAudioStore } from '~/stores/audio'
 interface Props {
   seatIndex: number
   seat: SeatData | null
-  pile: PileData
+  pile?: PileData
+  compact?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  compact: false,
+})
 
 const game = useGameStore()
 const audio = useAudioStore()
@@ -220,70 +265,45 @@ const hasReaction = computed(() => {
 })
 
 const teamPodClass = computed(() => {
-  if (game.mode === 'ffa') {
-    return isCurrentTurn.value
-      ? 'border-amber-400 bg-black/85 shadow-[0_0_20px_rgba(245,158,11,0.5)] ring-2 ring-amber-400 scale-105'
-      : 'border-white/15 bg-black/50'
-  }
-  const isBlue = props.seatIndex % 2 === 0
-  if (isCurrentTurn.value) {
-    return isBlue
-      ? 'border-blue-400 bg-blue-950/80 shadow-[0_0_25px_rgba(59,130,246,0.6)] ring-2 ring-blue-400 scale-105'
-      : 'border-rose-400 bg-rose-950/80 shadow-[0_0_25px_rgba(244,63,94,0.6)] ring-2 ring-rose-400 scale-105'
-  }
-  return isBlue
-    ? 'border-blue-500/30 bg-blue-950/45 hover:border-blue-400/50'
-    : 'border-rose-500/30 bg-rose-950/45 hover:border-rose-400/50'
+  if (game.mode !== 'teams') return 'border-white/15 bg-black/60'
+  return props.seatIndex % 2 === 0
+    ? 'border-blue-500/40 bg-blue-950/40'
+    : 'border-rose-500/40 bg-rose-950/40'
 })
 
 const canEatChain = computed(() => {
-  if (isMe.value || !game.isMyTurn || !props.pile.chain) return false
-  const r = props.pile.chain.rank
-  return game.myHand.some((c) => c.r === r || c.j)
+  if (!game.isMyTurn || !props.pile?.chain) return false
+  if (props.seatIndex === game.mySeat) return false
+  if (game.mode === 'teams' && props.seatIndex % 2 === game.mySeat % 2) return false
+  return game.myHand.some((c: CardData) => c.j || c.r === props.pile.chain!.rank)
 })
 
 function onChainClick() {
-  if (!canEatChain.value || !props.pile.chain) return
-  const rank = props.pile.chain.rank
-  let cardToUse: CardData | undefined = game.myHand.find((c) => c.id === game.selectedCardId)
-
-  if (!cardToUse || (cardToUse.r !== rank && !cardToUse.j)) {
-    cardToUse = game.myHand.find((c) => c.r === rank) || game.myHand.find((c) => c.j)
-    if (cardToUse) {
-      game.selectedCardId = cardToUse.id!
-      audio.sfx.pick()
-    }
-  }
-
-  if (cardToUse) {
+  if (!canEatChain.value || !props.pile?.chain) return
+  const match = game.myHand.find((c: CardData) => c.r === props.pile.chain!.rank) || game.myHand.find((c: CardData) => c.j)
+  if (match) {
     audio.sfx.eat()
-    audio.sfx.sweep()
-    game.playEat(cardToUse.id!, rank)
+    game.playEat(match.id!, props.pile.chain.rank)
   }
 }
 
-// Timer calculation
-const ringOffset = ref(0)
-let timerInterval: ReturnType<typeof setInterval> | null = null
-
-function updateTimer() {
-  if (!isCurrentTurn.value || !game.deadline) {
-    ringOffset.value = 0
-    return
-  }
-  const now = Date.now()
-  const deadlineTime = game.deadline + game.clockSkew
-  const total = game.phase === 'stop' ? 5000 : 20000
-  const remaining = Math.max(0, deadlineTime - now)
-  const frac = Math.min(1, Math.max(0, remaining / total))
-  ringOffset.value = 289 * (1 - frac)
-}
+// Turn countdown ring
+const now = ref(Date.now())
+let timerInterval: any = null
 
 onMounted(() => {
-  timerInterval = setInterval(updateTimer, 100)
+  timerInterval = setInterval(() => { now.value = Date.now() }, 100)
 })
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
+})
+
+const ringOffset = computed(() => {
+  if (!game.deadline || game.phase !== 'acting') return 0
+  const total = 20000
+  const rem = Math.max(0, game.deadline - now.value)
+  const frac = Math.min(1, Math.max(0, rem / total))
+  return 289 * (1 - frac)
 })
 </script>

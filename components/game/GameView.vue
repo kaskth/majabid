@@ -34,7 +34,7 @@
     <!-- ============================================================ -->
     <!-- TOP HEADER BAR (Ultra Mobile Friendly)                       -->
     <!-- ============================================================ -->
-    <header class="w-full flex items-center justify-between px-2 sm:px-4 py-1.5 bg-black/80 backdrop-blur-md border-b border-white/10 z-40">
+    <header class="w-full flex items-center justify-between px-2 sm:px-4 py-1 landscape:py-0.5 bg-black/80 backdrop-blur-md border-b border-white/10 z-40">
       <div class="flex items-center gap-1 sm:gap-2 flex-wrap text-xs">
         <b class="font-black text-xs sm:text-base text-gold-light">🂡 مجابيد</b>
         <span class="px-2 py-0.5 rounded-full bg-black/60 border border-white/15 font-mono text-amber-200 text-[10px] sm:text-xs">
@@ -123,28 +123,72 @@
     <!-- ============================================================ -->
     <!-- CENTRAL PLAYING ARENA (Top Seat, Left/Right Seats, 3D Table) -->
     <!-- ============================================================ -->
-    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-start items-center px-1 sm:px-3 pt-1 z-20 overflow-visible">
-      <!-- Top Seat Zone (Partner / Seat 2) -->
-      <div class="z-20 mb-1">
-        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" />
+    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-between landscape:justify-center items-center px-1 sm:px-3 pt-0.5 z-20 overflow-hidden">
+      <!-- 1. MOBILE PORTRAIT VIEW: ALL 3 OTHER PLAYERS IN A SINGLE TOP BAR -->
+      <div class="flex sm:hidden w-full items-center justify-between gap-1 px-1 mb-1 z-20">
+        <!-- Left Opponent (Seat 1) -->
+        <div class="w-[32%] max-w-[115px]">
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" />
+        </div>
+        <!-- Center Partner (Seat 2) - 4TH PLAYER PROMINENTLY IN CENTER! -->
+        <div class="w-[34%] max-w-[125px]">
+          <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="true" />
+        </div>
+        <!-- Right Opponent (Seat 3) -->
+        <div class="w-[32%] max-w-[115px]">
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="true" />
+        </div>
       </div>
 
-      <!-- Middle Arena Row (Left Seat, 3D Table, Right Seat) -->
-      <div class="relative w-full flex items-center justify-between gap-1 z-10">
-        <!-- Left Seat (Compact on mobile) -->
-        <div class="shrink-0 z-20">
-          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" />
+      <!-- 2. DESKTOP / TABLET VIEW: Top Partner Centered -->
+      <div class="hidden sm:flex z-20 mb-1">
+        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="false" />
+      </div>
+
+      <!-- Middle Arena Row (Desktop: Left Seat, 3D Table, Right Seat / Mobile: 100% Wide Table) -->
+      <div class="relative w-full flex items-center justify-between gap-1 z-10 flex-1">
+        <!-- Left Seat (Desktop Only) -->
+        <div class="hidden sm:block shrink-0 z-20">
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="false" />
         </div>
 
-        <!-- 3D Center Table Board -->
-        <div class="flex-1 flex justify-center max-w-full px-0.5">
+        <!-- 3D Center Table Board (Full width on Mobile Portrait!) -->
+        <div class="flex-1 flex justify-center w-full max-w-full px-0.5">
           <GameTableBoard />
         </div>
 
-        <!-- Right Seat (Compact on mobile) -->
-        <div class="shrink-0 z-20">
-          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" />
+        <!-- Right Seat (Desktop Only) -->
+        <div class="hidden sm:block shrink-0 z-20">
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="false" />
         </div>
+      </div>
+
+      <!-- 3. LIVE ACTION PLAY-BY-PLAY BANNER (Under Table) -->
+      <Transition
+        enter-active-class="transition duration-300 ease-out transform"
+        enter-from-class="opacity-0 -translate-y-2 scale-95"
+        enter-to-class="opacity-100 translate-y-0 scale-100"
+        leave-active-class="transition duration-200 ease-in transform"
+        leave-from-class="opacity-100 scale-100"
+        leave-to-class="opacity-0 -translate-y-2 scale-95"
+      >
+        <div
+          v-if="game.lastActionAnnouncement"
+          :key="game.lastActionAnnouncement.time"
+          class="my-1 px-3.5 py-1 rounded-full bg-black/90 border border-amber-400/50 text-amber-200 text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-1.5 z-20 select-none animate-pulse"
+        >
+          <span>📢</span>
+          <span>{{ game.lastActionAnnouncement.text }}</span>
+        </div>
+      </Transition>
+
+      <!-- TURN NOTIFICATION BANNER (When it's my turn) -->
+      <div
+        v-if="game.isMyTurn && game.phase === 'acting'"
+        class="my-0.5 px-4 py-1 rounded-full bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-black text-xs shadow-gold-glow animate-bounce z-20 select-none flex items-center gap-1.5"
+      >
+        <span>⚡</span>
+        <span>{{ game.myOptions.mustEat ? '⚠️ لديك أكلة إجبارية! اختر ورقة للأكل' : 'دورك الآن! اختر ورقة أو انقر عليها مرتين للعب' }}</span>
       </div>
     </div>
 
@@ -155,7 +199,7 @@
     <!-- BOTTOM PLAYER CONTROL DOCK (Clean, Mobile First, No Overlap) -->
     <!-- ============================================================ -->
     <div class="relative w-full flex flex-col items-center justify-end z-30 pb-safe">
-      <!-- 1. Action Buttons Row (Floats above player shelf) -->
+      <!-- 1. Action Buttons Dock (Floats above player shelf) -->
       <Transition
         enter-active-class="transition duration-200 ease-out transform"
         enter-from-class="scale-90 opacity-0 translate-y-2"
@@ -166,33 +210,35 @@
       >
         <div
           v-if="game.isMyTurn && game.phase === 'acting'"
-          class="mb-1 flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full bg-black/95 backdrop-blur-xl border border-amber-400/50 shadow-2xl z-40 max-w-[94vw]"
+          class="mb-1.5 landscape:mb-0.5 flex items-center justify-center gap-2 px-3 py-1.5 landscape:py-0.5 rounded-2xl bg-black/95 backdrop-blur-xl border-2 border-amber-400 shadow-2xl z-40 max-w-[96vw]"
         >
           <!-- Eat Button(s) -->
           <template v-if="selectedCardEats.length > 0">
             <button
               v-for="r in selectedCardEats"
               :key="r"
-              class="px-3.5 sm:px-5 py-1.5 rounded-full bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-black text-xs sm:text-sm shadow-gold-glow hover:scale-105 active:scale-95 transition-transform whitespace-nowrap"
+              class="px-5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 text-white font-black text-sm shadow-[0_0_15px_rgba(16,185,129,0.7)] hover:scale-105 active:scale-95 transition-transform flex items-center gap-1.5 whitespace-nowrap"
               @click="game.playCard('eat', game.selectedCardId!, r)"
             >
-              🍽️ أكل {{ r }}
+              <span>🍽️</span>
+              <span>أكل {{ r }}</span>
             </button>
           </template>
 
           <!-- Discard Button -->
           <button
             v-if="canDiscardSelected"
-            class="px-3 sm:px-4 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 text-white font-black text-xs sm:text-sm border border-white/20 shadow-md active:scale-95 transition-transform whitespace-nowrap"
+            class="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-yellow-600 text-black font-black text-sm shadow-md hover:scale-105 active:scale-95 transition-transform flex items-center gap-1.5 whitespace-nowrap"
             @click="game.playCard('discard', game.selectedCardId!)"
           >
-            🎯 ارمِ
+            <span>🎯</span>
+            <span>رمي في الميدان</span>
           </button>
 
           <!-- Pass Button -->
           <button
             v-if="!game.myOptions.mustEat"
-            class="px-2.5 sm:px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-[11px] sm:text-xs border border-white/15 active:scale-95 transition-colors whitespace-nowrap"
+            class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/20 active:scale-95 transition-colors whitespace-nowrap"
             @click="game.playCard('pass')"
           >
             ⏭️ تجاوز

@@ -1,13 +1,13 @@
 <template>
-  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-1">
+  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-0.5 landscape:py-0">
     <!-- 3D Table Outer Leather Padded Rail -->
     <div
-      class="relative w-full p-2.5 sm:p-4 rounded-[36px] sm:rounded-[44px] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-4 transition-all duration-500"
+      class="relative w-full p-2 sm:p-3.5 landscape:p-1.5 rounded-[28px] sm:rounded-[44px] landscape:rounded-[22px] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-3 sm:border-4 landscape:border-2 transition-all duration-500"
       :class="tableRimClass"
     >
       <!-- Golden Inlay Stitched Bezel -->
       <div
-        class="relative w-full rounded-[28px] sm:rounded-[36px] p-2 sm:p-4 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-2 overflow-hidden"
+        class="relative w-full rounded-[20px] sm:rounded-[36px] landscape:rounded-[18px] p-1.5 sm:p-3 landscape:p-1 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-1.5 overflow-hidden"
         :class="tableFeltClass"
       >
         <!-- Ambient Table Watermark / Arabesque Motif -->
@@ -18,18 +18,18 @@
         </div>
 
         <!-- Field Center Arena -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-[145px] sm:min-h-[175px] px-2 z-10">
+        <div class="flex-1 flex flex-col items-center justify-center min-h-[95px] sm:min-h-[150px] landscape:min-h-[68px] px-1 z-10">
           <!-- Arena Title & Count -->
-          <div class="text-[11px] sm:text-xs font-black tracking-wide mb-2 flex items-center gap-2 text-amber-200/90 drop-shadow">
-            <span class="text-base">🎯</span>
+          <div class="text-[10px] sm:text-xs font-black tracking-wide mb-1 flex items-center gap-1.5 text-amber-200/90 drop-shadow">
+            <span class="text-sm sm:text-base">🎯</span>
             <span>ميدان اللعب</span>
-            <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-black/60 border border-white/10 text-amber-300 font-mono">
+            <span class="text-[9px] sm:text-xs px-2 py-0.2 rounded-full bg-black/60 border border-white/10 text-amber-300 font-mono">
               {{ totalFieldCards }} ورقة
             </span>
           </div>
 
           <!-- Field Cards Row / Grid -->
-          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-1 sm:gap-2 max-w-full overflow-y-auto max-h-[140px] sm:max-h-[200px] no-scrollbar py-1">
+          <div v-if="groupedField.length > 0" class="flex flex-wrap items-center justify-center gap-1 sm:gap-1.5 max-w-full overflow-y-auto max-h-[120px] sm:max-h-[180px] landscape:max-h-[85px] no-scrollbar py-0.5">
             <div
               v-for="grp in groupedField"
               :key="grp.rank"
@@ -43,7 +43,7 @@
               @click="onFieldCardClick(grp.rank)"
             >
               <!-- 3D Card Stack Effect -->
-              <div class="relative w-8 sm:w-12 h-11 sm:h-16">
+              <div class="relative w-8 sm:w-11 landscape:w-7 h-11 sm:h-15 landscape:h-10">
                 <div
                   v-for="k in Math.min(grp.count, 3)"
                   :key="k"
@@ -73,16 +73,16 @@
           </div>
 
           <!-- Empty field placeholder -->
-          <div v-else class="text-xs text-amber-200/50 font-medium py-6 select-none flex flex-col items-center gap-1">
+          <div v-else class="text-xs text-amber-200/50 font-medium py-4 select-none flex flex-col items-center gap-1">
             <span class="text-xl opacity-40">🂡</span>
             <span>الميدان خالي — ارمِ ورقة أو ابدأ الصيد</span>
           </div>
         </div>
 
-        <!-- 3D Tactical Deck (الرزمة ذات السماكة الواقعية) -->
-        <div class="flex flex-col items-center justify-center pl-3 border-r border-amber-400/20 shrink-0 z-10">
+        <!-- 3D Tactical Deck -->
+        <div class="flex flex-col items-center justify-center pl-2 sm:pl-3 border-r border-amber-400/20 shrink-0 z-10">
           <div
-            class="relative w-14 sm:w-18 h-20 sm:h-24 transition-transform hover:scale-105 cursor-pointer"
+            class="relative w-10 sm:w-16 landscape:w-9 h-14 sm:h-22 landscape:h-13 transition-transform hover:scale-105 cursor-pointer"
             title="رزمة الأوراق المتبقية"
           >
             <!-- Deck Atmospheric Glow -->

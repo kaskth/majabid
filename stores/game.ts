@@ -145,6 +145,7 @@ export const useGameStore = defineStore('game', () => {
   const activeSessions = ref<ActiveSession[]>([])
   const leaderboardList = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } }[]>([])
   const leaderboardMy = ref<{ username: string; name: string; avatar: string; pts: number; rank: { emblem: string; name: string } } | null>(null)
+  const lastActionAnnouncement = ref<{ text: string; kind: string; time: number } | null>(null)
 
   // Socket reference
   let socket: WebSocket | null = null
@@ -344,6 +345,9 @@ export const useGameStore = defineStore('game', () => {
     if (logText) {
       logs.value.unshift({ id: nextLogId++, text: logText, kind: ev.kind })
       if (logs.value.length > 50) logs.value.pop()
+      if (['eat', 'jokerEat', 'stop', 'jokerStop', 'discard', 'flip', 'skip'].includes(ev.kind)) {
+        lastActionAnnouncement.value = { text: logText, kind: ev.kind, time: Date.now() }
+      }
     }
 
     // Play sounds
@@ -498,6 +502,7 @@ export const useGameStore = defineStore('game', () => {
     activeSessions,
     leaderboardList,
     leaderboardMy,
+    lastActionAnnouncement,
     isMyTurn,
     connect,
     send,
