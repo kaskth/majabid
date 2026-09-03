@@ -1,13 +1,13 @@
 <template>
-  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-0.5 landscape:py-0">
+  <div class="relative w-full max-w-2xl mx-auto flex items-center justify-center select-none py-0.5 landscape:py-0 landscape:max-w-[460px]">
     <!-- 3D Table Outer Leather Padded Rail -->
     <div
-      class="relative w-full p-2 sm:p-3.5 landscape:p-1.5 rounded-[28px] sm:rounded-[44px] landscape:rounded-[22px] shadow-[0_20px_50px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-3 sm:border-4 landscape:border-2 transition-all duration-500"
+      class="relative w-full p-2 sm:p-3.5 landscape:p-1 rounded-[28px] sm:rounded-[44px] landscape:rounded-[18px] shadow-[0_15px_35px_rgba(0,0,0,0.8),inset_0_2px_4px_rgba(255,255,255,0.15)] border-3 sm:border-4 landscape:border-2 transition-all duration-500"
       :class="tableRimClass"
     >
       <!-- Golden Inlay Stitched Bezel -->
       <div
-        class="relative w-full rounded-[20px] sm:rounded-[36px] landscape:rounded-[18px] p-1.5 sm:p-3 landscape:p-1 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-1.5 overflow-hidden"
+        class="relative w-full rounded-[20px] sm:rounded-[36px] landscape:rounded-[14px] p-1.5 sm:p-3 landscape:p-1 border-2 shadow-inner transition-colors duration-500 flex items-center justify-between gap-1.5 overflow-hidden"
         :class="tableFeltClass"
       >
         <!-- Ambient Table Watermark / Arabesque Motif -->
@@ -18,7 +18,7 @@
         </div>
 
         <!-- Field Center Arena -->
-        <div class="flex-1 flex flex-col items-center justify-center min-h-[95px] sm:min-h-[150px] landscape:min-h-[68px] px-1 z-10">
+        <div class="flex-1 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[140px] landscape:min-h-[55px] px-1 z-10">
           <!-- Arena Title & Count -->
           <div class="text-[10px] sm:text-xs font-black tracking-wide mb-1 flex items-center gap-1.5 text-amber-200/90 drop-shadow">
             <span class="text-sm sm:text-base">🎯</span>

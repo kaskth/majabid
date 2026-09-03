@@ -1,96 +1,76 @@
 <template>
   <div>
-    <!-- Cinematic Vignette Pulse Overlay during Stop Window -->
+    <!-- Subtle Red Ambient Glow around Screen Edges during Ambush Window -->
     <div
       v-if="game.phase === 'stop' && game.pending"
-      class="fixed inset-0 pointer-events-none z-40 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(220,38,38,0.35)_100%)] animate-pulse transition-opacity duration-300"
+      class="fixed inset-0 pointer-events-none z-30 bg-[radial-gradient(circle_at_center,transparent_55%,rgba(225,29,72,0.25)_100%)] animate-pulse transition-opacity duration-300"
     />
 
+    <!-- 1. SLIM AMBIENT NOTIFICATION PILL AT TOP OF ARENA (For Everyone, Zero Table Obstruction) -->
     <Transition
-      enter-active-class="transition duration-300 ease-out transform"
-      enter-from-class="scale-90 opacity-0 -translate-y-4"
-      enter-to-class="scale-100 opacity-100 translate-y-0"
-      leave-active-class="transition duration-200 ease-in transform"
-      leave-from-class="scale-100 opacity-100"
-      leave-to-class="scale-95 opacity-0"
+      enter-active-class="transition duration-200 ease-out transform"
+      enter-from-class="opacity-0 -translate-y-2 scale-95"
+      enter-to-class="opacity-100 translate-y-0 scale-100"
+      leave-active-class="transition duration-150 ease-in transform"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 -translate-y-2 scale-95"
     >
       <div
         v-if="game.phase === 'stop' && game.pending"
-        class="fixed inset-0 z-50 flex items-center justify-center p-3 pointer-events-none select-none"
+        class="fixed top-12 inset-x-0 z-40 flex justify-center pointer-events-none select-none px-2"
       >
-        <!-- Cinematic Ambush Card (Centered over table, leaving all 4 player seats and hand cards visible) -->
-        <div
-          class="pointer-events-auto relative px-4 py-2.5 sm:px-6 sm:py-3.5 rounded-2xl sm:rounded-3xl bg-black/95 backdrop-blur-2xl border-2 border-rose-500 shadow-[0_0_35px_rgba(225,29,72,0.55)] text-center min-w-[260px] sm:min-w-[320px] max-w-[92vw]"
-        >
-          <!-- Header -->
-          <div class="flex items-center justify-between gap-2 mb-1">
-            <h3 class="text-amber-300 font-black text-xs sm:text-base tracking-wide flex items-center gap-1">
-              <span>⛔</span>
-              <span>«وقّف!» (الكمين)</span>
-            </h3>
+        <div class="px-4 py-1.5 rounded-full bg-black/90 border border-rose-500/80 shadow-[0_0_20px_rgba(225,29,72,0.6)] backdrop-blur-md flex items-center gap-2 text-xs">
+          <span class="text-rose-400 font-black animate-pulse">⛔ كمين «وقّف!»:</span>
+          <span class="text-amber-300 font-bold">{{ ownerName }}</span>
+          <span class="text-white">أكل</span>
+          <span class="px-2 py-0.2 rounded bg-amber-500/20 text-amber-300 font-black border border-amber-400/40">
+            {{ game.pending.rank }} ({{ game.pending.count }} ورقة)
+          </span>
+          <!-- Countdown Badge -->
+          <span class="w-5 h-5 rounded-full bg-rose-600 text-white font-mono font-black text-[11px] flex items-center justify-center">
+            {{ remainingSeconds }}
+          </span>
+        </div>
+      </div>
+    </Transition>
 
-            <!-- Circular Countdown Timer Badge -->
-            <div class="relative w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shrink-0">
-              <svg class="w-full h-full -rotate-90" viewBox="0 0 60 60">
-                <circle cx="30" cy="30" r="26" class="stroke-white/10 fill-none" stroke-width="5" />
-                <circle
-                  cx="30"
-                  cy="30"
-                  r="26"
-                  class="stroke-rose-500 fill-none transition-all duration-100"
-                  stroke-width="6"
-                  stroke-linecap="round"
-                  stroke-dasharray="163"
-                  :stroke-dashoffset="163 * (1 - timerFrac)"
-                />
-              </svg>
-              <span class="absolute font-mono font-black text-xs sm:text-sm text-amber-300">
-                {{ remainingSeconds }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Owner & Capture info -->
-          <div class="text-[11px] sm:text-xs text-white/90 mb-2 flex items-center justify-center gap-1.5">
-            <span class="font-bold text-amber-300">{{ ownerName }}</span>
-            <span>يأكل</span>
-            <span class="font-black text-amber-400 bg-amber-500/20 px-2 py-0.2 rounded-full border border-amber-400/50">
-              {{ game.pending.rank }} ({{ game.pending.count }} ورقة)
+    <!-- 2. TACTICAL THUMB ACTION BAR (Appears directly above hand cards ONLY if player has the card) -->
+    <Transition
+      enter-active-class="transition duration-200 ease-out transform"
+      enter-from-class="opacity-0 translate-y-3 scale-95"
+      enter-to-class="opacity-100 translate-y-0 scale-100"
+      leave-active-class="transition duration-150 ease-in transform"
+      leave-from-class="opacity-100 scale-100"
+      leave-to-class="opacity-0 translate-y-3 scale-95"
+    >
+      <div
+        v-if="game.phase === 'stop' && game.pending && canAct && !hasFolded"
+        class="fixed bottom-22 sm:bottom-26 inset-x-0 z-50 flex items-center justify-center px-3 pointer-events-none select-none"
+      >
+        <div class="pointer-events-auto flex items-center gap-2 p-1.5 sm:p-2 rounded-2xl bg-black/95 border-2 border-rose-500 shadow-[0_0_30px_rgba(225,29,72,0.85)] backdrop-blur-xl animate-bounce">
+          <!-- Big Red-Gold Ambush Button -->
+          <button
+            class="px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-500 to-amber-500 text-white font-black text-xs sm:text-sm shadow-lg flex items-center gap-2 hover:scale-105 active:scale-95 transition-transform"
+            @click="executeStop"
+          >
+            <span class="text-base sm:text-lg">⛔</span>
+            <span>صرخة «وقّف!» (اخطف الصيدة)</span>
+            <span v-if="matchingCardText" class="bg-black/60 px-2 py-0.5 rounded-md text-amber-300 text-xs font-mono font-bold">
+              {{ matchingCardText }}
             </span>
-          </div>
+            <span class="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-black/40 text-amber-300 font-mono text-[11px] sm:text-xs font-black flex items-center justify-center border border-white/20">
+              {{ remainingSeconds }}ث
+            </span>
+          </button>
 
-          <!-- Decision Buttons -->
-          <div class="mt-1 flex items-center justify-center gap-2">
-            <!-- Stop / Ambush CTA Button -->
-            <button
-              v-if="canAct && !hasFolded"
-              class="flex-1 px-4 py-1.5 sm:py-2 rounded-full bg-gradient-to-r from-red-600 via-rose-500 to-amber-600 text-white font-black text-xs sm:text-sm shadow-[0_0_20px_rgba(225,29,72,0.7)] border border-amber-300 hover:scale-105 active:scale-95 transition-transform flex items-center justify-center gap-1.5 animate-pulse"
-              @click="executeStop"
-            >
-              <span>⛔ صرخة «وقّف!»</span>
-              <span v-if="matchingCardText" class="text-[10px] bg-black/50 px-1.5 py-0.2 rounded-full">
-                {{ matchingCardText }}
-              </span>
-            </button>
-
-            <!-- Fold / Keep Card Button -->
-            <button
-              v-if="canAct && !hasFolded"
-              class="px-3 py-1.5 sm:py-2 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-[10px] sm:text-xs border border-white/15 transition-colors"
-              title="تجاوز واحتفظ بالورقة"
-              @click="hasFolded = true"
-            >
-              تجاوز
-            </button>
-
-            <!-- Waiting status -->
-            <div
-              v-if="!canAct || hasFolded"
-              class="w-full py-0.5 text-center text-[11px] text-gray-300 font-medium"
-            >
-              {{ hasFolded ? 'تم حفظ الورقة — بانتظار العداد ⏳' : (isPendingOwner ? 'أكلتك معلقة — ترقّب ثواني الكمين ⏳' : 'بانتظار انتهاء النافذة ⏳') }}
-            </div>
-          </div>
+          <!-- Fold Button -->
+          <button
+            class="px-3 py-2 sm:py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 font-bold text-xs border border-white/20 active:scale-95 transition-colors"
+            title="تجاوز واحتفظ بورقتك"
+            @click="hasFolded = true"
+          >
+            تجاوز
+          </button>
         </div>
       </div>
     </Transition>
@@ -108,70 +88,72 @@ const audio = useAudioStore()
 const hasFolded = ref(false)
 
 // Reset fold state when pending window changes
-watch(() => game.pending, () => {
-  hasFolded.value = false
-})
-
-const ownerName = computed(() => {
-  if (!game.pending) return ''
-  const s = game.seats[game.pending.owner]
-  return s?.name || `لاعب ${game.pending.owner + 1}`
-})
+watch(
+  () => game.pending?.tStop,
+  () => {
+    hasFolded.value = false
+  }
+)
 
 const isPendingOwner = computed(() => {
-  return game.pending?.owner === game.mySeat
+  if (!game.pending) return false
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  return ownerSeat === game.mySeat
+})
+
+// Can the local player play a Stop ambush?
+const canAct = computed(() => {
+  if (game.isSpec) return false
+  if (isPendingOwner.value) return false
+  if (game.mySeat < 0) return false
+  return game.myStopCards.length > 0
 })
 
 const matchingCard = computed(() => {
-  if (!game.pending || isPendingOwner.value) return null
-  return game.myHand.find((c) => c.j || c.r === game.pending!.rank) || null
-})
-
-const canAct = computed(() => {
-  return !isPendingOwner.value && !!matchingCard.value && game.canStop
+  if (!canAct.value) return null
+  return game.myStopCards[0]
 })
 
 const matchingCardText = computed(() => {
   if (!matchingCard.value) return ''
-  if (matchingCard.value.j) return '🃏 الجوكر'
-  return `${matchingCard.value.r} ${matchingCard.value.s}`
+  if (matchingCard.value.joker) return '🃏 جوكر'
+  return `${matchingCard.value.suit}${matchingCard.value.rank}`
 })
 
-const remainingSeconds = ref(5)
-const timerFrac = ref(1)
-let secInterval: ReturnType<typeof setInterval> | null = null
-let lastBeepSec = 5
+const ownerName = computed(() => {
+  if (!game.pending) return ''
+  const ownerSeat = game.pending.owner !== undefined ? game.pending.owner : (game.pending as any).by
+  if (ownerSeat === undefined || ownerSeat === null) return 'الخصم'
+  const s = game.seats[ownerSeat]
+  return s?.name || `لاعب ${ownerSeat + 1}`
+})
 
-function updateCountdown() {
-  if (game.phase !== 'stop' || !game.deadline) {
-    remainingSeconds.value = 5
-    timerFrac.value = 1
-    return
-  }
-  const now = Date.now()
-  const deadlineTime = game.deadline + game.clockSkew
-  const rem = Math.max(0, deadlineTime - now)
-  const total = 5000
-  const curSec = Math.ceil(rem / 1000)
-  if (curSec !== lastBeepSec && curSec > 0) {
-    lastBeepSec = curSec
-    audio.sfx.heartbeat()
-  }
-  remainingSeconds.value = curSec
-  timerFrac.value = Math.min(1, Math.max(0, rem / total))
-}
-
-function executeStop() {
-  if (!matchingCard.value) return
-  audio.sfx.stop()
-  game.playCard('stop', matchingCard.value.id)
-}
+// Timer countdown animation
+const now = ref(Date.now())
+let timerInterval: ReturnType<typeof setInterval> | null = null
 
 onMounted(() => {
-  secInterval = setInterval(updateCountdown, 80)
+  timerInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 100)
 })
 
 onUnmounted(() => {
-  if (secInterval) clearInterval(secInterval)
+  if (timerInterval) clearInterval(timerInterval)
 })
+
+const remainingMs = computed(() => {
+  if (!game.pending?.tStop) return 0
+  return Math.max(0, game.pending.tStop - now.value)
+})
+
+const remainingSeconds = computed(() => {
+  return Math.ceil(remainingMs.value / 1000)
+})
+
+function executeStop() {
+  if (!canAct.value || !matchingCard.value) return
+  audio.sfx.stopAmbush()
+  game.playCard('stop', matchingCard.value.id)
+}
 </script>

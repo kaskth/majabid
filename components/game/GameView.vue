@@ -123,9 +123,9 @@
     <!-- ============================================================ -->
     <!-- CENTRAL PLAYING ARENA (Top Seat, Left/Right Seats, 3D Table) -->
     <!-- ============================================================ -->
-    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-between landscape:justify-center items-center px-1 sm:px-3 pt-0.5 z-20 overflow-hidden">
+    <div class="relative flex-1 w-full max-w-4xl mx-auto flex flex-col justify-between landscape:justify-start items-center px-1 sm:px-3 pt-0.5 z-20 overflow-hidden">
       <!-- 1. MOBILE PORTRAIT VIEW: ALL 3 OTHER PLAYERS IN A SINGLE TOP BAR -->
-      <div class="flex sm:hidden w-full items-center justify-between gap-1 px-1 mb-1 z-20">
+      <div v-if="!isLandscape" class="flex sm:hidden landscape:hidden w-full items-center justify-between gap-1 px-1 mb-1 z-20">
         <!-- Left Opponent (Seat 1) -->
         <div class="w-[32%] max-w-[115px]">
           <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="true" />
@@ -140,26 +140,26 @@
         </div>
       </div>
 
-      <!-- 2. DESKTOP / TABLET VIEW: Top Partner Centered -->
-      <div class="hidden sm:flex z-20 mb-1">
-        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="false" />
+      <!-- 2. DESKTOP / TABLET OR MOBILE LANDSCAPE: Top Partner Centered (100% In View!) -->
+      <div class="hidden sm:flex landscape:flex z-20 mb-0.5 landscape:mb-0 shrink-0">
+        <GameSeatZone :seat-index="topSeatIndex" :seat="game.seats[topSeatIndex]" :pile="game.piles[topSeatIndex]" :compact="isLandscape" />
       </div>
 
-      <!-- Middle Arena Row (Desktop: Left Seat, 3D Table, Right Seat / Mobile: 100% Wide Table) -->
-      <div class="relative w-full flex items-center justify-between gap-1 z-10 flex-1">
-        <!-- Left Seat (Desktop Only) -->
-        <div class="hidden sm:block shrink-0 z-20">
-          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="false" />
+      <!-- Middle Arena Row (Desktop & Landscape: Left Seat, 3D Table, Right Seat / Portrait: 100% Wide Table) -->
+      <div class="relative w-full flex items-center justify-between gap-1 z-10 flex-1 landscape:flex-initial landscape:my-0.5">
+        <!-- Left Seat (Desktop & Mobile Landscape) -->
+        <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
+          <GameSeatZone :seat-index="leftSeatIndex" :seat="game.seats[leftSeatIndex]" :pile="game.piles[leftSeatIndex]" :compact="isLandscape" />
         </div>
 
-        <!-- 3D Center Table Board (Full width on Mobile Portrait!) -->
+        <!-- 3D Center Table Board (FULL OVAL TABLE IS 100% VISIBLE!) -->
         <div class="flex-1 flex justify-center w-full max-w-full px-0.5">
           <GameTableBoard />
         </div>
 
-        <!-- Right Seat (Desktop Only) -->
-        <div class="hidden sm:block shrink-0 z-20">
-          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="false" />
+        <!-- Right Seat (Desktop & Mobile Landscape) -->
+        <div class="hidden sm:block landscape:block shrink-0 z-20 max-w-[115px] sm:max-w-[130px]">
+          <GameSeatZone :seat-index="rightSeatIndex" :seat="game.seats[rightSeatIndex]" :pile="game.piles[rightSeatIndex]" :compact="isLandscape" />
         </div>
       </div>
 
@@ -261,8 +261,8 @@
         </div>
       </Transition>
 
-      <!-- 2. Player Status & Piles Strip (Right above the Hand Fan, full width) -->
-      <div class="w-full max-w-lg mx-auto px-2 sm:px-4 flex items-center justify-between gap-1 text-xs mb-0.5 select-none">
+      <!-- 2. Player Status & Piles Strip (Portrait: In-Flow. Landscape: Docked to corners) -->
+      <div class="landscape:hidden w-full max-w-lg mx-auto px-2 sm:px-4 flex items-center justify-between gap-1 text-xs mb-0.5 select-none">
         <!-- Player Pile (Buried & Chain) -->
         <div class="flex items-center gap-2 bg-black/75 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow">
           <span class="text-[10px] text-gray-300 font-mono font-bold">
@@ -311,6 +311,37 @@
         </div>
       </div>
 
+      <!-- Corner Player Pod for Mobile Landscape (Leaves table 100% visible & unblocked!) -->
+      <div
+        class="hidden landscape:flex fixed bottom-1 left-2 z-40 items-center gap-1.5 px-2.5 py-1 rounded-xl border bg-black/90 backdrop-blur-md shadow-lg select-none"
+        :class="[
+          game.mySeat % 2 === 0 ? 'bg-blue-950/80 border-blue-500/50' : 'bg-rose-950/80 border-rose-500/50',
+          game.isMyTurn ? 'ring-2 ring-amber-400' : ''
+        ]"
+      >
+        <UiAvatarImg :avatar="playerSeat?.avatar || 'a1'" size="xs" :border="game.isMyTurn ? 'gold' : 'white'" />
+        <div class="flex flex-col text-right leading-none">
+          <div class="flex items-center gap-1">
+            <b class="text-[10px] text-white font-black max-w-[65px] truncate">{{ playerSeat?.name || 'أنت' }}</b>
+            <span v-if="game.dealer === game.mySeat" class="text-[9px]">🪙</span>
+          </div>
+          <span class="text-[8px] text-gray-300 font-mono mt-0.5">📦 {{ playerPile.buriedCount || 0 }}</span>
+        </div>
+      </div>
+
+      <!-- Corner Emoji Reactions for Mobile Landscape -->
+      <div class="hidden landscape:flex fixed bottom-1 right-2 z-40 items-center gap-0.5 px-2 py-1 rounded-xl border border-white/20 bg-black/90 backdrop-blur-md shadow-lg select-none">
+        <button
+          v-for="em in ['🔥', '😎', '👏', '💔']"
+          :key="em"
+          class="text-xs hover:scale-130 active:scale-95 transition-transform p-0.5"
+          :title="`تفاعل ${em}`"
+          @click="game.sendReaction(em)"
+        >
+          {{ em }}
+        </button>
+      </div>
+
       <!-- 3. Bottom Hand Fan (Unobstructed full width!) -->
       <div v-if="!game.isSpec" class="w-full">
         <GameHandFan />
@@ -323,7 +354,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useGameStore } from '~/stores/game'
 import { useAudioStore } from '~/stores/audio'
 import { useUiStore } from '~/stores/ui'
@@ -331,6 +362,27 @@ import { useUiStore } from '~/stores/ui'
 const game = useGameStore()
 const audio = useAudioStore()
 const ui = useUiStore()
+
+const isLandscape = ref(false)
+
+function checkLandscape() {
+  if (typeof window !== 'undefined') {
+    isLandscape.value = window.innerWidth > window.innerHeight && window.innerHeight <= 520
+  }
+}
+
+onMounted(() => {
+  checkLandscape()
+  window.addEventListener('resize', checkLandscape)
+  window.addEventListener('orientationchange', checkLandscape)
+})
+
+onUnmounted(() => {
+  if (typeof window !== 'undefined') {
+    window.removeEventListener('resize', checkLandscape)
+    window.removeEventListener('orientationchange', checkLandscape)
+  }
+})
 
 // Relative seat positions for other players (top, left, right)
 const bottomSeatIndex = computed(() => {
